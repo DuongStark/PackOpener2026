@@ -2,21 +2,45 @@ import { Injectable } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { UserService } from '../user/user.service.js';
-import { access } from 'fs';
+import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly jwtServices: JwtService,
+  ) {}
 
   register(createAuthDto: CreateAuthDto) {
-    const user = this.userService.createUser(createAuthDto);
-    return this.signToken(createAuthDto.email, createAuthDto.password);
-}
+    return this.userService.createUser(createAuthDto);
+  }
 
-  signToken(email: string, password: string) {
-    return {
-      accessToken: ''
+  async validateUser(email: string, password: string): Promise<any> {
+    const user = await this.userService.findByEmail(email);
+    if (!user) {
+      return null;
     }
+    const checked = await bcrypt.compare(password, user.passwordHash);
+    if (!checked) {
+      return null;
+    }
+
+    const { passwordHash: _, ...result } = user;
+    return result;
+  }
+
+  login(user: any) {
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role,
+      username: user.username,
+    };
+    return {
+      access_token: this.jwtServices.sign(payload),
+      tokenType: 'Bearer',
+      expiresIn: '86400',
+    };
   }
 }

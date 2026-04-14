@@ -1,0 +1,32 @@
+BadRequestException (400): Dùng khi dữ liệu đầu vào không hợp lệ (thường gặp khi Validation Pipe thất bại).
+
+UnauthorizedException (401): Dùng khi người dùng chưa đăng nhập hoặc token xác thực không hợp lệ.
+
+ForbiddenException (403): Người dùng đã đăng nhập nhưng không có quyền truy cập vào tài nguyên này (ví dụ: cần quyền Admin).
+
+NotFoundException (404): Không tìm thấy tài nguyên (ví dụ: ID người dùng không tồn tại trong DB).
+
+NotAcceptableException (406): Khi yêu cầu không đáp ứng các tiêu chí về Header Accept.
+
+ConflictException (409): Xung đột dữ liệu (ví dụ: đăng ký tài khoản với email đã tồn tại).
+
+PayloadTooLargeException (413): File tải lên hoặc dữ liệu body quá lớn so với giới hạn của server.
+
+UnsupportedMediaTypeException (415): Định dạng dữ liệu không được hỗ trợ (ví dụ: gửi XML trong khi server chỉ nhận JSON).
+
+2. Các lỗi về quy trình và logic (4xx & 5xx)
+MethodNotAllowedException (405): Endpoint tồn tại nhưng phương thức HTTP (GET, POST, PUT...) không được hỗ trợ cho đường dẫn đó.
+
+RequestTimeoutException (408): Yêu cầu bị quá hạn thời gian xử lý.
+
+GoneException (410): Tài nguyên từng tồn tại nhưng nay đã bị xóa vĩnh viễn.
+
+InternalServerErrorException (500): Lỗi hệ thống không xác định (đây là lỗi mặc định nếu bạn throw một lỗi JavaScript thông thường mà không bắt lại).
+
+NotImplementedException (501): Server không hỗ trợ chức năng mà client yêu cầu.
+
+BadGatewayException (502): Thường xảy ra khi NestJS đóng vai trò gateway/proxy và nhận phản hồi lỗi từ server phía sau.
+
+ServiceUnavailableException (503): Server đang tạm thời quá tải hoặc đang bảo trì.
+
+GatewayTimeoutException (504): Server trung gian không nhận được phản hồi kịp thời từ server đích.
