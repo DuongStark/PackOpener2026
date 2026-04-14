@@ -17,4 +17,48 @@ import * as Prisma from './internal/prismaNamespaceBrowser.js'
 export { Prisma }
 export * as $Enums from './enums.js'
 export * from './enums.js';
-
+/**
+ * Model User
+ * 
+ */
+export type User = Prisma.UserModel
+/**
+ * Model Cards
+ * 
+ */
+export type Cards = Prisma.CardsModel
+/**
+ * Model PackDefinition
+ * 
+ */
+export type PackDefinition = Prisma.PackDefinitionModel
+/**
+ * Model PackCardPool
+ * 
+ */
+export type PackCardPool = Prisma.PackCardPoolModel
+/**
+ * Model UserPack
+ * 
+ */
+export type UserPack = Prisma.UserPackModel
+/**
+ * Model PackOpeningResult
+ * 
+ */
+export type PackOpeningResult = Prisma.PackOpeningResultModel
+/**
+ * Model Inventory
+ * 
+ */
+export type Inventory = Prisma.InventoryModel
+/**
+ * Model InventoryItems
+ * 
+ */
+export type InventoryItems = Prisma.InventoryItemsModel
+/**
+ * Model Transaction
+ * 
+ */
+export type Transaction = Prisma.TransactionModel

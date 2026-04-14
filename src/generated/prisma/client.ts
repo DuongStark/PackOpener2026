@@ -39,4 +39,48 @@ export const PrismaClient = $Class.getPrismaClientClass()
 export type PrismaClient<LogOpts extends Prisma.LogLevel = never, OmitOpts extends Prisma.PrismaClientOptions["omit"] = Prisma.PrismaClientOptions["omit"], ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = $Class.PrismaClient<LogOpts, OmitOpts, ExtArgs>
 export { Prisma }
 
-
+/**
+ * Model User
+ * 
+ */
+export type User = Prisma.UserModel
+/**
+ * Model Cards
+ * 
+ */
+export type Cards = Prisma.CardsModel
+/**
+ * Model PackDefinition
+ * 
+ */
+export type PackDefinition = Prisma.PackDefinitionModel
+/**
+ * Model PackCardPool
+ * 
+ */
+export type PackCardPool = Prisma.PackCardPoolModel
+/**
+ * Model UserPack
+ * 
+ */
+export type UserPack = Prisma.UserPackModel
+/**
+ * Model PackOpeningResult
+ * 
+ */
+export type PackOpeningResult = Prisma.PackOpeningResultModel
+/**
+ * Model Inventory
+ * 
+ */
+export type Inventory = Prisma.InventoryModel
+/**
+ * Model InventoryItems
+ * 
+ */
+export type InventoryItems = Prisma.InventoryItemsModel
+/**
+ * Model Transaction
+ * 
+ */
+export type Transaction = Prisma.TransactionModel

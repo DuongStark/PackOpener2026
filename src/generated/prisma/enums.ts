@@ -9,7 +9,39 @@
 * 🟢 You can import this file directly.
 */
 
+export const Rarity = {
+  Common: 'Common',
+  Rare: 'Rare',
+  Epic: 'Epic',
+  Legendary: 'Legendary'
+} as const
+
+export type Rarity = (typeof Rarity)[keyof typeof Rarity]
 
 
-// This file is empty because there are no enums in the schema.
-export {}
+export const Role = {
+  USER: 'USER',
+  ADMIN: 'ADMIN'
+} as const
+
+export type Role = (typeof Role)[keyof typeof Role]
+
+
+export const Status = {
+  IN_INVENTORY: 'IN_INVENTORY',
+  LISTED: 'LISTED',
+  SOLD: 'SOLD',
+  BURNED: 'BURNED'
+} as const
+
+export type Status = (typeof Status)[keyof typeof Status]
+
+
+export const Type = {
+  BUY_PACK: 'BUY_PACK',
+  SELL_CARD: 'SELL_CARD',
+  INITIAL_CREDIT: 'INITIAL_CREDIT',
+  ADMIN_ADJUSTMENT: 'ADMIN_ADJUSTMENT'
+} as const
+
+export type Type = (typeof Type)[keyof typeof Type]

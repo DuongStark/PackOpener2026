@@ -51,7 +51,15 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-
+  User: 'User',
+  Cards: 'Cards',
+  PackDefinition: 'PackDefinition',
+  PackCardPool: 'PackCardPool',
+  UserPack: 'UserPack',
+  PackOpeningResult: 'PackOpeningResult',
+  Inventory: 'Inventory',
+  InventoryItems: 'InventoryItems',
+  Transaction: 'Transaction'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -68,4 +76,168 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 } as const)
 
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
+
+
+export const UserScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  passwordHash: 'passwordHash',
+  username: 'username',
+  balance: 'balance',
+  role: 'role',
+  isActive: 'isActive',
+  deletedAt: 'deletedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const CardsScalarFieldEnum = {
+  id: 'id',
+  sofifaId: 'sofifaId',
+  name: 'name',
+  overall: 'overall',
+  rarity: 'rarity',
+  position: 'position',
+  club: 'club',
+  nation: 'nation',
+  imageUrl: 'imageUrl',
+  sellPrice: 'sellPrice',
+  pace: 'pace',
+  shooting: 'shooting',
+  passing: 'passing',
+  dribbling: 'dribbling',
+  defending: 'defending',
+  physical: 'physical',
+  createdAt: 'createdAt'
+} as const
+
+export type CardsScalarFieldEnum = (typeof CardsScalarFieldEnum)[keyof typeof CardsScalarFieldEnum]
+
+
+export const PackDefinitionScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  price: 'price',
+  cardCount: 'cardCount',
+  imageUrl: 'imageUrl',
+  isActive: 'isActive',
+  createdAt: 'createdAt'
+} as const
+
+export type PackDefinitionScalarFieldEnum = (typeof PackDefinitionScalarFieldEnum)[keyof typeof PackDefinitionScalarFieldEnum]
+
+
+export const PackCardPoolScalarFieldEnum = {
+  id: 'id',
+  packId: 'packId',
+  cardId: 'cardId',
+  weight: 'weight'
+} as const
+
+export type PackCardPoolScalarFieldEnum = (typeof PackCardPoolScalarFieldEnum)[keyof typeof PackCardPoolScalarFieldEnum]
+
+
+export const UserPackScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  packId: 'packId',
+  status: 'status',
+  purchasedAt: 'purchasedAt',
+  openedAt: 'openedAt'
+} as const
+
+export type UserPackScalarFieldEnum = (typeof UserPackScalarFieldEnum)[keyof typeof UserPackScalarFieldEnum]
+
+
+export const PackOpeningResultScalarFieldEnum = {
+  id: 'id',
+  userPackId: 'userPackId',
+  cardId: 'cardId',
+  cardSnapshot: 'cardSnapshot',
+  positionInPack: 'positionInPack',
+  createdAt: 'createdAt'
+} as const
+
+export type PackOpeningResultScalarFieldEnum = (typeof PackOpeningResultScalarFieldEnum)[keyof typeof PackOpeningResultScalarFieldEnum]
+
+
+export const InventoryScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  cardId: 'cardId',
+  quantity: 'quantity'
+} as const
+
+export type InventoryScalarFieldEnum = (typeof InventoryScalarFieldEnum)[keyof typeof InventoryScalarFieldEnum]
+
+
+export const InventoryItemsScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  cardId: 'cardId',
+  sourceResultId: 'sourceResultId',
+  status: 'status',
+  acquiredAt: 'acquiredAt'
+} as const
+
+export type InventoryItemsScalarFieldEnum = (typeof InventoryItemsScalarFieldEnum)[keyof typeof InventoryItemsScalarFieldEnum]
+
+
+export const TransactionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  type: 'type',
+  amount: 'amount',
+  balanceBefore: 'balanceBefore',
+  balanceAfter: 'balanceAfter',
+  description: 'description',
+  relatedEntityId: 'relatedEntityId',
+  createdAt: 'createdAt'
+} as const
+
+export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
+
+
+export const SortOrder = {
+  asc: 'asc',
+  desc: 'desc'
+} as const
+
+export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+export const QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+} as const
+
+export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

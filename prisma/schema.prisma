@@ -25,25 +25,41 @@ enum Role {
   ADMIN
 }
 
+enum Status {
+  IN_INVENTORY
+  LISTED
+  SOLD
+  BURNED
+}
+
+enum Type {
+  BUY_PACK
+  SELL_CARD
+  INITIAL_CREDIT
+  ADMIN_ADJUSTMENT
+}
+
 model User {
-  id           String      @id @default(uuid())
-  email        String      @unique
-  passwordHash String      @map("password_hash")
-  username     String      @unique
-  balance      Int         @default(1000)
-  role         Role        @default(USER)
-  isActive     Boolean     @default(true) @map("is_active")
-  deletedAt    DateTime?   @map("deleted_at")
-  createdAt    DateTime    @default(now()) @map("created_at")
-  updatedAt    DateTime    @updatedAt @map("updated_at")
-  userPacks    UserPack[]
-  inventories  Inventory[]
+  id             String           @id @default(uuid()) @db.Uuid
+  email          String           @unique
+  passwordHash   String           @map("password_hash")
+  username       String           @unique
+  balance        Int              @default(1000)
+  role           Role             @default(USER)
+  isActive       Boolean          @default(true) @map("is_active")
+  deletedAt      DateTime?        @map("deleted_at")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  userPacks      UserPack[]
+  inventories    Inventory[]
+  inventoryItems InventoryItems[]
+  transactions   Transaction[]
 
   @@map("users")
 }
 
 model Cards {
-  id                 String              @id @default(uuid())
+  id                 String              @id @default(uuid()) @db.Uuid
   sofifaId           Int                 @unique @map("sofifa_id")
   name               String
   overall            Int
@@ -63,12 +79,13 @@ model Cards {
   packCardPools      PackCardPool[]
   packOpeningResults PackOpeningResult[]
   inventories        Inventory[]
+  inventoryItems     InventoryItems[]
 
   @@map("cards")
 }
 
 model PackDefinition {
-  id            String         @id @default(uuid())
+  id            String         @id @default(uuid()) @db.Uuid
   name          String
   description   String?
   price         Int
@@ -83,7 +100,7 @@ model PackDefinition {
 }
 
 model PackCardPool {
-  id     String         @id @default(uuid())
+  id     String         @id @default(uuid()) @db.Uuid
   packId String         @map("pack_id") @db.Uuid
   cardId String         @map("card_id") @db.Uuid
   weight Int            @default(1)
@@ -91,10 +108,11 @@ model PackCardPool {
   card   Cards          @relation(fields: [cardId], references: [id], onDelete: Restrict)
 
   @@unique([packId, cardId])
+  @@map("pack_card_pool")
 }
 
 model UserPack {
-  id                 String              @id @default(uuid())
+  id                 String              @id @default(uuid()) @db.Uuid
   userId             String              @map("user_id") @db.Uuid
   packId             String              @map("pack_id") @db.Uuid
   status             String              @default("pending")
@@ -103,21 +121,26 @@ model UserPack {
   user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   pack               PackDefinition      @relation(fields: [packId], references: [id], onDelete: Restrict)
   packOpeningResults PackOpeningResult[]
+
+  @@map("user_packs")
 }
 
 model PackOpeningResult {
-  id             String   @id @default(uuid())
-  userPackId     String   @map("user_pack_id") @db.Uuid
-  cardId         String   @map("card_id") @db.Uuid
-  cardSnapshot   Json     @map("card_snapshot")
-  positionInPack Int      @map("position_in_pack")
-  createdAt      DateTime @default(now()) @map("created_at")
-  userPack       UserPack @relation(fields: [userPackId], references: [id], onDelete: Cascade)
-  card           Cards    @relation(fields: [cardId], references: [id], onDelete: Restrict)
+  id             String           @id @default(uuid()) @db.Uuid
+  userPackId     String           @map("user_pack_id") @db.Uuid
+  cardId         String           @map("card_id") @db.Uuid
+  cardSnapshot   Json             @map("card_snapshot")
+  positionInPack Int              @map("position_in_pack")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  userPack       UserPack         @relation(fields: [userPackId], references: [id], onDelete: Cascade)
+  card           Cards            @relation(fields: [cardId], references: [id], onDelete: Restrict)
+  inventoryItems InventoryItems[]
+
+  @@map("pack_opening_results")
 }
 
 model Inventory {
-  id       String @id @default(uuid())
+  id       String @id @default(uuid()) @db.Uuid
   userId   String @map("user_id") @db.Uuid
   cardId   String @map("card_id") @db.Uuid
   quantity Int    @default(1)
@@ -125,4 +148,34 @@ model Inventory {
   card     Cards  @relation(fields: [cardId], references: [id], onDelete: Restrict)
 
   @@unique([userId, cardId])
+  @@map("inventory")
+}
+
+model InventoryItems {
+  id             String            @id @default(uuid()) @db.Uuid
+  userId         String            @map("user_id") @db.Uuid
+  cardId         String            @map("card_id") @db.Uuid
+  sourceResultId String            @map("source_result_id") @db.Uuid
+  status         Status            @default(IN_INVENTORY)
+  acquiredAt     DateTime          @default(now()) @map("acquired_at")
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  card           Cards             @relation(fields: [cardId], references: [id], onDelete: Restrict)
+  sourceResult   PackOpeningResult @relation(fields: [sourceResultId], references: [id], onDelete: Restrict)
+
+  @@map("inventory_items")
+}
+
+model Transaction {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  type            Type     @default(ADMIN_ADJUSTMENT)
+  amount          Int
+  balanceBefore   Int      @map("balance_before")
+  balanceAfter    Int      @map("balance_after")
+  description     String?
+  relatedEntityId String?  @map("related_entity_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
 }
