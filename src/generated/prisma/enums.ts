@@ -9,11 +9,34 @@
 * 🟢 You can import this file directly.
 */
 
+export const Position = {
+  GK: 'GK',
+  CB: 'CB',
+  LB: 'LB',
+  RB: 'RB',
+  LM: 'LM',
+  RM: 'RM',
+  CM: 'CM',
+  CDM: 'CDM',
+  CAM: 'CAM',
+  LW: 'LW',
+  RW: 'RW',
+  ST: 'ST'
+} as const
+
+export type Position = (typeof Position)[keyof typeof Position]
+
+
 export const Rarity = {
-  Common: 'Common',
-  Rare: 'Rare',
-  Epic: 'Epic',
-  Legendary: 'Legendary'
+  BRONZE_COMMON: 'BRONZE_COMMON',
+  BRONZE_RARE: 'BRONZE_RARE',
+  SILVER_COMMON: 'SILVER_COMMON',
+  SILVER_RARE: 'SILVER_RARE',
+  GOLD_COMMON: 'GOLD_COMMON',
+  GOLD_RARE: 'GOLD_RARE',
+  GOLD_EPIC: 'GOLD_EPIC',
+  DIAMOND_COMMON: 'DIAMOND_COMMON',
+  DIAMOND_RARE: 'DIAMOND_RARE'
 } as const
 
 export type Rarity = (typeof Rarity)[keyof typeof Rarity]

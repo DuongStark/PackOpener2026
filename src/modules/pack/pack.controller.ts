@@ -2,19 +2,22 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { PackService } from './pack.service';
 import { CreatePackDto } from './dto/create-pack.dto';
 import { UpdatePackDto } from './dto/update-pack.dto';
+import { Query } from '@nestjs/common';
 
-@Controller('pack')
+@Controller('packs')
 export class PackController {
   constructor(private readonly packService: PackService) {}
 
-  @Post()
-  create(@Body() createPackDto: CreatePackDto) {
-    return this.packService.create(createPackDto);
-  }
-
   @Get()
-  findAll() {
-    return this.packService.findAll();
+  async findPack(@Query('page') page: string = '1', @Query('limit') limit: string = '10') {
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const result = await this.packService.findAll(pageNumber, limitNumber)
+    return {
+      ...result,
+      page: pageNumber,
+      limit: limitNumber,
+    }
   }
 
   @Get(':id')

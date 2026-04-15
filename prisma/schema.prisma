@@ -13,11 +13,31 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Position {
+  GK
+  CB
+  LB
+  RB
+  LM
+  RM
+  CM
+  CDM
+  CAM
+  LW
+  RW
+  ST
+}
+
 enum Rarity {
-  Common
-  Rare
-  Epic
-  Legendary
+  BRONZE_COMMON
+  BRONZE_RARE
+  SILVER_COMMON
+  SILVER_RARE
+  GOLD_COMMON
+  GOLD_RARE
+  GOLD_EPIC
+  DIAMOND_COMMON
+  DIAMOND_RARE
 }
 
 enum Role {
@@ -64,7 +84,7 @@ model Cards {
   name               String
   overall            Int
   rarity             Rarity
-  position           String
+  position           Position
   club               String?
   nation             String?
   imageUrl           String?             @map("image_url")

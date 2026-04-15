@@ -56,7 +56,7 @@ export type CardsMinAggregateOutputType = {
   name: string | null
   overall: number | null
   rarity: $Enums.Rarity | null
-  position: string | null
+  position: $Enums.Position | null
   club: string | null
   nation: string | null
   imageUrl: string | null
@@ -76,7 +76,7 @@ export type CardsMaxAggregateOutputType = {
   name: string | null
   overall: number | null
   rarity: $Enums.Rarity | null
-  position: string | null
+  position: $Enums.Position | null
   club: string | null
   nation: string | null
   imageUrl: string | null
@@ -289,7 +289,7 @@ export type CardsGroupByOutputType = {
   name: string
   overall: number
   rarity: $Enums.Rarity
-  position: string
+  position: $Enums.Position
   club: string | null
   nation: string | null
   imageUrl: string | null
@@ -332,7 +332,7 @@ export type CardsWhereInput = {
   name?: Prisma.StringFilter<"Cards"> | string
   overall?: Prisma.IntFilter<"Cards"> | number
   rarity?: Prisma.EnumRarityFilter<"Cards"> | $Enums.Rarity
-  position?: Prisma.StringFilter<"Cards"> | string
+  position?: Prisma.EnumPositionFilter<"Cards"> | $Enums.Position
   club?: Prisma.StringNullableFilter<"Cards"> | string | null
   nation?: Prisma.StringNullableFilter<"Cards"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Cards"> | string | null
@@ -383,7 +383,7 @@ export type CardsWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Cards"> | string
   overall?: Prisma.IntFilter<"Cards"> | number
   rarity?: Prisma.EnumRarityFilter<"Cards"> | $Enums.Rarity
-  position?: Prisma.StringFilter<"Cards"> | string
+  position?: Prisma.EnumPositionFilter<"Cards"> | $Enums.Position
   club?: Prisma.StringNullableFilter<"Cards"> | string | null
   nation?: Prisma.StringNullableFilter<"Cards"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Cards"> | string | null
@@ -435,7 +435,7 @@ export type CardsScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"Cards"> | string
   overall?: Prisma.IntWithAggregatesFilter<"Cards"> | number
   rarity?: Prisma.EnumRarityWithAggregatesFilter<"Cards"> | $Enums.Rarity
-  position?: Prisma.StringWithAggregatesFilter<"Cards"> | string
+  position?: Prisma.EnumPositionWithAggregatesFilter<"Cards"> | $Enums.Position
   club?: Prisma.StringNullableWithAggregatesFilter<"Cards"> | string | null
   nation?: Prisma.StringNullableWithAggregatesFilter<"Cards"> | string | null
   imageUrl?: Prisma.StringNullableWithAggregatesFilter<"Cards"> | string | null
@@ -455,7 +455,7 @@ export type CardsCreateInput = {
   name: string
   overall: number
   rarity: $Enums.Rarity
-  position: string
+  position: $Enums.Position
   club?: string | null
   nation?: string | null
   imageUrl?: string | null
@@ -479,7 +479,7 @@ export type CardsUncheckedCreateInput = {
   name: string
   overall: number
   rarity: $Enums.Rarity
-  position: string
+  position: $Enums.Position
   club?: string | null
   nation?: string | null
   imageUrl?: string | null
@@ -503,7 +503,7 @@ export type CardsUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   overall?: Prisma.IntFieldUpdateOperationsInput | number
   rarity?: Prisma.EnumRarityFieldUpdateOperationsInput | $Enums.Rarity
-  position?: Prisma.StringFieldUpdateOperationsInput | string
+  position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -527,7 +527,7 @@ export type CardsUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   overall?: Prisma.IntFieldUpdateOperationsInput | number
   rarity?: Prisma.EnumRarityFieldUpdateOperationsInput | $Enums.Rarity
-  position?: Prisma.StringFieldUpdateOperationsInput | string
+  position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -551,7 +551,7 @@ export type CardsCreateManyInput = {
   name: string
   overall: number
   rarity: $Enums.Rarity
-  position: string
+  position: $Enums.Position
   club?: string | null
   nation?: string | null
   imageUrl?: string | null
@@ -571,7 +571,7 @@ export type CardsUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   overall?: Prisma.IntFieldUpdateOperationsInput | number
   rarity?: Prisma.EnumRarityFieldUpdateOperationsInput | $Enums.Rarity
-  position?: Prisma.StringFieldUpdateOperationsInput | string
+  position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -591,7 +591,7 @@ export type CardsUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   overall?: Prisma.IntFieldUpdateOperationsInput | number
   rarity?: Prisma.EnumRarityFieldUpdateOperationsInput | $Enums.Rarity
-  position?: Prisma.StringFieldUpdateOperationsInput | string
+  position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -698,6 +698,10 @@ export type EnumRarityFieldUpdateOperationsInput = {
   set?: $Enums.Rarity
 }
 
+export type EnumPositionFieldUpdateOperationsInput = {
+  set?: $Enums.Position
+}
+
 export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
@@ -772,7 +776,7 @@ export type CardsCreateWithoutPackCardPoolsInput = {
   name: string
   overall: number
   rarity: $Enums.Rarity
-  position: string
+  position: $Enums.Position
   club?: string | null
   nation?: string | null
   imageUrl?: string | null
@@ -795,7 +799,7 @@ export type CardsUncheckedCreateWithoutPackCardPoolsInput = {
   name: string
   overall: number
   rarity: $Enums.Rarity
-  position: string
+  position: $Enums.Position
   club?: string | null
   nation?: string | null
   imageUrl?: string | null
@@ -834,7 +838,7 @@ export type CardsUpdateWithoutPackCardPoolsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   overall?: Prisma.IntFieldUpdateOperationsInput | number
   rarity?: Prisma.EnumRarityFieldUpdateOperationsInput | $Enums.Rarity
-  position?: Prisma.StringFieldUpdateOperationsInput | string
+  position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -857,7 +861,7 @@ export type CardsUncheckedUpdateWithoutPackCardPoolsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   overall?: Prisma.IntFieldUpdateOperationsInput | number
   rarity?: Prisma.EnumRarityFieldUpdateOperationsInput | $Enums.Rarity
-  position?: Prisma.StringFieldUpdateOperationsInput | string
+  position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -880,7 +884,7 @@ export type CardsCreateWithoutPackOpeningResultsInput = {
   name: string
   overall: number
   rarity: $Enums.Rarity
-  position: string
+  position: $Enums.Position
   club?: string | null
   nation?: string | null
   imageUrl?: string | null
@@ -903,7 +907,7 @@ export type CardsUncheckedCreateWithoutPackOpeningResultsInput = {
   name: string
   overall: number
   rarity: $Enums.Rarity
-  position: string
+  position: $Enums.Position
   club?: string | null
   nation?: string | null
   imageUrl?: string | null
@@ -942,7 +946,7 @@ export type CardsUpdateWithoutPackOpeningResultsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   overall?: Prisma.IntFieldUpdateOperationsInput | number
   rarity?: Prisma.EnumRarityFieldUpdateOperationsInput | $Enums.Rarity
-  position?: Prisma.StringFieldUpdateOperationsInput | string
+  position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -965,7 +969,7 @@ export type CardsUncheckedUpdateWithoutPackOpeningResultsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   overall?: Prisma.IntFieldUpdateOperationsInput | number
   rarity?: Prisma.EnumRarityFieldUpdateOperationsInput | $Enums.Rarity
-  position?: Prisma.StringFieldUpdateOperationsInput | string
+  position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -988,7 +992,7 @@ export type CardsCreateWithoutInventoriesInput = {
   name: string
   overall: number
   rarity: $Enums.Rarity
-  position: string
+  position: $Enums.Position
   club?: string | null
   nation?: string | null
   imageUrl?: string | null
@@ -1011,7 +1015,7 @@ export type CardsUncheckedCreateWithoutInventoriesInput = {
   name: string
   overall: number
   rarity: $Enums.Rarity
-  position: string
+  position: $Enums.Position
   club?: string | null
   nation?: string | null
   imageUrl?: string | null
@@ -1050,7 +1054,7 @@ export type CardsUpdateWithoutInventoriesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   overall?: Prisma.IntFieldUpdateOperationsInput | number
   rarity?: Prisma.EnumRarityFieldUpdateOperationsInput | $Enums.Rarity
-  position?: Prisma.StringFieldUpdateOperationsInput | string
+  position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1073,7 +1077,7 @@ export type CardsUncheckedUpdateWithoutInventoriesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   overall?: Prisma.IntFieldUpdateOperationsInput | number
   rarity?: Prisma.EnumRarityFieldUpdateOperationsInput | $Enums.Rarity
-  position?: Prisma.StringFieldUpdateOperationsInput | string
+  position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1096,7 +1100,7 @@ export type CardsCreateWithoutInventoryItemsInput = {
   name: string
   overall: number
   rarity: $Enums.Rarity
-  position: string
+  position: $Enums.Position
   club?: string | null
   nation?: string | null
   imageUrl?: string | null
@@ -1119,7 +1123,7 @@ export type CardsUncheckedCreateWithoutInventoryItemsInput = {
   name: string
   overall: number
   rarity: $Enums.Rarity
-  position: string
+  position: $Enums.Position
   club?: string | null
   nation?: string | null
   imageUrl?: string | null
@@ -1158,7 +1162,7 @@ export type CardsUpdateWithoutInventoryItemsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   overall?: Prisma.IntFieldUpdateOperationsInput | number
   rarity?: Prisma.EnumRarityFieldUpdateOperationsInput | $Enums.Rarity
-  position?: Prisma.StringFieldUpdateOperationsInput | string
+  position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1181,7 +1185,7 @@ export type CardsUncheckedUpdateWithoutInventoryItemsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   overall?: Prisma.IntFieldUpdateOperationsInput | number
   rarity?: Prisma.EnumRarityFieldUpdateOperationsInput | $Enums.Rarity
-  position?: Prisma.StringFieldUpdateOperationsInput | string
+  position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1366,7 +1370,7 @@ export type $CardsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     name: string
     overall: number
     rarity: $Enums.Rarity
-    position: string
+    position: $Enums.Position
     club: string | null
     nation: string | null
     imageUrl: string | null
@@ -1810,7 +1814,7 @@ export interface CardsFieldRefs {
   readonly name: Prisma.FieldRef<"Cards", 'String'>
   readonly overall: Prisma.FieldRef<"Cards", 'Int'>
   readonly rarity: Prisma.FieldRef<"Cards", 'Rarity'>
-  readonly position: Prisma.FieldRef<"Cards", 'String'>
+  readonly position: Prisma.FieldRef<"Cards", 'Position'>
   readonly club: Prisma.FieldRef<"Cards", 'String'>
   readonly nation: Prisma.FieldRef<"Cards", 'String'>
   readonly imageUrl: Prisma.FieldRef<"Cards", 'String'>

@@ -193,6 +193,13 @@ export type EnumRarityFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumRarityFilter<$PrismaModel> | $Enums.Rarity
 }
 
+export type EnumPositionFilter<$PrismaModel = never> = {
+  equals?: $Enums.Position | Prisma.EnumPositionFieldRefInput<$PrismaModel>
+  in?: $Enums.Position[] | Prisma.ListEnumPositionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.Position[] | Prisma.ListEnumPositionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPositionFilter<$PrismaModel> | $Enums.Position
+}
+
 export type StringNullableFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
@@ -227,6 +234,16 @@ export type EnumRarityWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumRarityFilter<$PrismaModel>
   _max?: Prisma.NestedEnumRarityFilter<$PrismaModel>
+}
+
+export type EnumPositionWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.Position | Prisma.EnumPositionFieldRefInput<$PrismaModel>
+  in?: $Enums.Position[] | Prisma.ListEnumPositionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.Position[] | Prisma.ListEnumPositionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPositionWithAggregatesFilter<$PrismaModel> | $Enums.Position
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPositionFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPositionFilter<$PrismaModel>
 }
 
 export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -567,6 +584,13 @@ export type NestedEnumRarityFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumRarityFilter<$PrismaModel> | $Enums.Rarity
 }
 
+export type NestedEnumPositionFilter<$PrismaModel = never> = {
+  equals?: $Enums.Position | Prisma.EnumPositionFieldRefInput<$PrismaModel>
+  in?: $Enums.Position[] | Prisma.ListEnumPositionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.Position[] | Prisma.ListEnumPositionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPositionFilter<$PrismaModel> | $Enums.Position
+}
+
 export type NestedStringNullableFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
@@ -589,6 +613,16 @@ export type NestedEnumRarityWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumRarityFilter<$PrismaModel>
   _max?: Prisma.NestedEnumRarityFilter<$PrismaModel>
+}
+
+export type NestedEnumPositionWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.Position | Prisma.EnumPositionFieldRefInput<$PrismaModel>
+  in?: $Enums.Position[] | Prisma.ListEnumPositionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.Position[] | Prisma.ListEnumPositionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPositionWithAggregatesFilter<$PrismaModel> | $Enums.Position
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPositionFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPositionFilter<$PrismaModel>
 }
 
 export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
