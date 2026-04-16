@@ -9,5 +9,6 @@ import { TransactionModule } from '../transaction/transaction.module.js';
   imports: [UserModule, TransactionModule],
   controllers: [PackController],
   providers: [PackService],
+  exports: [PackService],
 })
 export class PackModule {}

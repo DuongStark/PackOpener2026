@@ -15,13 +15,6 @@ import { UpdatePackDto } from './dto/update-pack.dto';
 import { Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard.js';
 
-interface buyPackResult {
-  userPackId: string;
-  packName: string;
-  price: number;
-  newBalance: number;
-  status: string;
-}
 
 @Controller('packs')
 export class PackController {
@@ -42,14 +35,10 @@ export class PackController {
     };
   }
 
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.packService.findOne(id);
   }
 
-  @Post(':id/buy')
-  @UseGuards(JwtAuthGuard)
-  async buyPack(@Param('id') id: string, @Req() req): Promise<buyPackResult> {
-    return this.packService.buyPack(id, req.user.id);
-  }
 }

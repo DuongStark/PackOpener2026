@@ -10,6 +10,7 @@ import { PackModule } from './modules/pack/pack.module';
 import { CardModule } from './modules/card/card.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { TransactionModule } from './modules/transaction/transaction.module';
+import { UserPackModule } from './user-pack/user-pack.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { TransactionModule } from './modules/transaction/transaction.module';
     CardModule,
     InventoryModule,
     TransactionModule,
+    UserPackModule,
   ],
   controllers: [AppController],
   providers: [AppService],
