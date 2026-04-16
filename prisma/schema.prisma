@@ -59,6 +59,11 @@ enum Type {
   ADMIN_ADJUSTMENT
 }
 
+enum PackStatus {
+  PENDING
+  OPENED
+}
+
 model User {
   id             String           @id @default(uuid()) @db.Uuid
   email          String           @unique
@@ -135,7 +140,7 @@ model UserPack {
   id                 String              @id @default(uuid()) @db.Uuid
   userId             String              @map("user_id") @db.Uuid
   packId             String              @map("pack_id") @db.Uuid
-  status             String              @default("pending")
+  status             PackStatus              @default(PENDING)
   purchasedAt        DateTime            @default(now()) @map("purchased_at")
   openedAt           DateTime?           @map("opened_at")
   user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)

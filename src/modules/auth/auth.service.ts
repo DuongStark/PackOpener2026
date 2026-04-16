@@ -12,7 +12,7 @@ export class AuthService {
     private readonly jwtServices: JwtService,
   ) {}
 
-  register(createAuthDto: CreateAuthDto) {
+  register(createAuthDto: CreateAuthDto): Promise<Omit<any, 'passwordHash'>> {
     return this.userService.createUser(createAuthDto);
   }
 
@@ -30,7 +30,7 @@ export class AuthService {
     return result;
   }
 
-  login(user: any) {
+  login(user: any): { access_token: string; tokenType: string; expiresIn: string } {
     const payload = {
       email: user.email,
       sub: user.id,

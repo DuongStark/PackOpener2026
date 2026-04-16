@@ -1379,6 +1379,20 @@ export type ListEnumPositionFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
 
 
 /**
+ * Reference to a field of type 'PackStatus'
+ */
+export type EnumPackStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PackStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'PackStatus[]'
+ */
+export type ListEnumPackStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PackStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Json'
  */
 export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>

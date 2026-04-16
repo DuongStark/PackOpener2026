@@ -1,0 +1,2017 @@
+BA MASTER DOCUMENT
+Pack Opener Game — Backend API Specification
+Phiên bản
+v2.4
+Ngày cập nhật
+2026-04-13
+Trạng thái
+Draft for Development
+Tech Stack
+NestJS + Prisma + PostgreSQL + Socket.IO
+Tác giả
+Business Analyst Team
+1. Tổng Quan Sản Phẩm
+1.1 Mục Tiêu Sản Phẩm
+Xây dựng backend cho web game mở thẻ cầu thủ, cho phép người chơi đăng ký, đăng nhập, mua pack, mở pack, quản lý inventory, bán thẻ, và theo dõi lịch sử giao dịch. Admin quản lý toàn bộ dữ liệu hệ thống qua module Admin API.
+1.2 Vòng Lặp Kinh Doanh
+Mua Pack → Mở Pack → Nhận Thẻ → Bán Thẻ lấy Coin → Tiếp tục Mua Pack
+1.3 KPI Đề Xuất
+KPI
+Mục Tiêu
+Ghi Chú
+D1 Retention
+>= 35%
+Tỷ lệ người chơi quay lại ngày thứ 2
+Pack mở TB / user / ngày
+>= 3
+Đo lường mức độ engagement
+User có giao dịch sau 7 ngày
+>= 60%
+Buy hoặc Sell ít nhất 1 lần
+Tỷ lệ lỗi mở pack (5xx)
+< 0.1%
+Đo lường độ ổn định hệ thống
+1.4 Phạm Vi Dự Án (MVP)
+✅ In-scope (MVP)
+❌ Out-of-scope
+Auth: đăng ký, đăng nhập, xem/sửa profile
+Pack: danh sách, chi tiết, mua, mở pack
+Card: danh sách, chi tiết
+Inventory: xem, filter/sort/pagination
+Sell: bán thẻ lấy coin
+Lịch sử: biến động coin, kết quả mở pack
+WebSocket: real-time mở pack, balance
+Admin: quản lý user, pack, card, thống kê
+Health check
+PvP, marketplace user-to-user
+Sự kiện seasonal, mission, achievement
+Thanh toán thật (real money gateway)
+Admin CMS đầy đủ (ngoài MVP scope)
+2. Mô Hình Dữ Liệu (ERD)
+💡 Tất cả PK dùng UUID v4. Timestamps dùng TIMESTAMPTZ (timezone-aware). Prisma schema tham khảo tên cột snake_case bên dưới.
+2.1 Bảng: users
+Thông tin tài khoản và số dư coin của người chơi. Thêm cột role để phân quyền admin.
+Cột
+Kiểu
+Ràng Buộc
+Mô Tả
+id
+UUID
+PK
+Khóa chính, tự sinh UUID v4
+email
+VARCHAR(255)
+UNIQUE NOT NULL
+Email đăng nhập, duy nhất toàn hệ thống
+password_hash
+VARCHAR(255)
+NOT NULL
+Hash bcrypt (cost >= 12) hoặc argon2id
+username
+VARCHAR(100)
+UNIQUE NOT NULL
+Tên hiển thị
+balance
+INTEGER
+NOT NULL DEFAULT 1000
+Số dư coin. Luôn >= 0. Mặc định 1000 (BR-16)
+role
+ENUM
+NOT NULL DEFAULT 'USER'
+'USER' | 'ADMIN'. Phân quyền truy cập admin endpoints. Thêm mới từ v2.3.
+is_active
+BOOLEAN
+NOT NULL DEFAULT true
+false = tài khoản bị khóa. Thêm mới từ v2.3.
+deleted_at
+TIMESTAMPTZ
+NULL
+Soft delete timestamp. NULL = chưa xóa. Thêm mới từ v2.3.
+created_at
+TIMESTAMPTZ
+NOT NULL DEFAULT now()
+Thời điểm tạo tài khoản
+updated_at
+TIMESTAMPTZ
+NOT NULL DEFAULT now()
+Thời điểm cập nhật gần nhất
+2.2 Bảng: cards
+Metadata thẻ cầu thủ. Đây là dữ liệu tĩnh, Admin thêm/sửa qua Admin API.
+Cột
+Kiểu
+Ràng Buộc
+Mô Tả
+id
+UUID
+PK
+Khóa chính
+sofifa_id
+INTEGER
+UNIQUE NOT NULL
+ID từ nguồn dữ liệu cầu thủ (SoFIFA)
+name
+VARCHAR(255)
+NOT NULL
+Tên cầu thủ (ví dụ: L. Messi)
+overall
+INTEGER
+NOT NULL CHECK (1-99)
+Chỉ số tổng hợp từ 1 đến 99
+rarity
+ENUM
+NOT NULL
+'COMMON' | 'RARE' | 'EPIC' | 'LEGEND'
+position
+VARCHAR(10)
+NOT NULL
+GK | CB | LB | RB | CM | CAM | CDM | LW | RW | ST
+club
+VARCHAR(100)
+NULL
+Câu lạc bộ hiện tại
+nation
+VARCHAR(100)
+NULL
+Quốc tịch
+image_url
+VARCHAR(512)
+NULL
+URL ảnh thẻ cầu thủ
+sell_price
+INTEGER
+NOT NULL DEFAULT 10
+Giá bán thẻ (coin). Luôn > 0.
+pace
+INTEGER
+NULL
+Chỉ số tốc độ (0-99)
+shooting
+INTEGER
+NULL
+Chỉ số sút (0-99)
+passing
+INTEGER
+NULL
+Chỉ số chuyền (0-99)
+dribbling
+INTEGER
+NULL
+Chỉ số dribble (0-99)
+defending
+INTEGER
+NULL
+Chỉ số phòng thủ (0-99)
+physical
+INTEGER
+NULL
+Chỉ số thể lực (0-99)
+created_at
+TIMESTAMPTZ
+NOT NULL DEFAULT now()
+Ngày seed dữ liệu
+2.3 Bảng: pack_definitions
+Cấu hình loại pack đang bán. Admin tạo và quản lý qua Admin API.
+Cột
+Kiểu
+Ràng Buộc
+Mô Tả
+id
+UUID
+PK
+Khóa chính
+name
+VARCHAR(255)
+NOT NULL
+Tên pack (ví dụ: Gold Pack)
+description
+TEXT
+NULL
+Mô tả pack
+price
+INTEGER
+NOT NULL CHECK > 0
+Giá mua pack bằng coin
+card_count
+INTEGER
+NOT NULL CHECK > 0
+Số thẻ nhận được mỗi lần mở
+image_url
+VARCHAR(512)
+NULL
+Hình ảnh đại diện pack
+is_active
+BOOLEAN
+NOT NULL DEFAULT true
+true = đang bán; false = ẩn khỏi listing
+created_at
+TIMESTAMPTZ
+NOT NULL DEFAULT now()
+2.4 Bảng: pack_card_pool
+Danh sách thẻ có thể ra trong mỗi pack cùng trọng số để weighted random.
+📌 Quy tắc Weighted Random: weight là số nguyên dương, đơn vị tùy ý. Xác suất ra 1 thẻ = weight_thẻ / tổng_weight_toàn_pool. Ví dụ: pool có 3 thẻ weight [60, 30, 10] → xác suất lần lượt 60%, 30%, 10%. Tổng KHÔNG bắt buộc phải = 100. Server phải tổng hợp và tính runtime, không hardcode. Nếu pool rỗng → throw lỗi 500 và log cảnh báo.
+Cột
+Kiểu
+Ràng Buộc
+Mô Tả
+id
+UUID
+PK
+Khóa chính
+pack_id
+UUID
+FK → pack_definitions.id NOT NULL
+Pack chứa pool này
+card_id
+UUID
+FK → cards.id NOT NULL
+Thẻ trong pool
+weight
+INTEGER
+NOT NULL CHECK > 0
+Trọng số tương đối. UNIQUE(pack_id, card_id)
+2.5 Bảng: user_packs
+Mỗi record đại diện cho 1 lần mua pack. Quan hệ 1-N với pack_opening_results.
+📌 1 userPack có thể mở ra nhiều thẻ (card_count thẻ). Quan hệ với pack_opening_results là 1-N, KHÔNG phải 1-1.
+Cột
+Kiểu
+Ràng Buộc
+Mô Tả
+id
+UUID
+PK
+Khóa chính
+user_id
+UUID
+FK → users.id NOT NULL
+User sở hữu pack này
+pack_id
+UUID
+FK → pack_definitions.id NOT NULL
+Pack đã mua
+status
+ENUM
+NOT NULL DEFAULT 'PENDING'
+'PENDING' = chưa mở | 'OPENED' = đã mở. Chỉ chuyển 1 chiều PENDING → OPENED.
+purchased_at
+TIMESTAMPTZ
+NOT NULL DEFAULT now()
+Thời điểm mua
+opened_at
+TIMESTAMPTZ
+NULL
+Thời điểm mở. NULL khi chưa mở.
+2.6 Bảng: pack_opening_results
+Snapshot kết quả từng thẻ khi mở pack. Bất biến sau khi tạo (không UPDATE, không DELETE).
+Cột
+Kiểu
+Ràng Buộc
+Mô Tả
+id
+UUID
+PK
+Khóa chính
+user_pack_id
+UUID
+FK → user_packs.id NOT NULL
+Pack đã mở (1 pack → nhiều rows)
+card_id
+UUID
+FK → cards.id NOT NULL
+Thẻ nhận được
+card_snapshot
+JSONB
+NOT NULL
+Snapshot toàn bộ data thẻ tại thời điểm mở
+position_in_pack
+INTEGER
+NOT NULL
+Thứ tự thẻ trong pack (1, 2, 3, ..., card_count). Dùng cho animation reveal.
+created_at
+TIMESTAMPTZ
+NOT NULL DEFAULT now()
+Thời điểm lưu kết quả
+2.7 Bảng: inventory
+Bảng tổng hợp bộ sưu tập thẻ của người chơi. Aggregated model (1 row per cardType) — giữ nguyên để phục vụ GET /inventory nhanh. Kết hợp với bảng inventory_items (2.8) để track từng instance thẻ, hỗ trợ mở rộng market và tính năng đập thẻ sau này.
+Cột
+Kiểu
+Ràng Buộc
+Mô Tả
+id
+UUID
+PK
+Khóa chính
+user_id
+UUID
+FK → users.id NOT NULL
+Chủ sở hữu
+card_id
+UUID
+FK → cards.id NOT NULL
+Thẻ đang sở hữu. UNIQUE(user_id, card_id)
+quantity
+INTEGER
+NOT NULL DEFAULT 1 CHECK > 0
+Số lượng đang có. Xóa row nếu hết.
+2.8 Bảng: inventory_items
+Track từng instance thẻ cụ thể của người chơi. Mỗi row đại diện cho 1 thẻ vật lý nhận được từ 1 lần mở pack. Bảng này phục vụ market và tính năng đập thẻ sau MVP. Không thay thế bảng inventory — hai bảng hoạt động song song.
+Cột
+Kiểu
+Ràng Buộc
+Mô Tả
+id
+UUID
+PK
+Khóa chính, mỗi item instance có UUID riêng
+user_id
+UUID
+FK → users.id NOT NULL
+Chủ sở hữu hiện tại của item
+card_id
+UUID
+FK → cards.id NOT NULL
+Loại thẻ
+source_result_id
+UUID
+FK → pack_opening_results.id NULL
+Thẻ đến từ pack nào. NULL nếu thêm bằng cách khác (ví dụ: admin grant).
+status
+ENUM
+NOT NULL DEFAULT 'IN_INVENTORY'
+'IN_INVENTORY' | 'LISTED' | 'SOLD' | 'BURNED'. Chỉ chuyển 1 chiều, không quay lui.
+acquired_at
+TIMESTAMPTZ
+NOT NULL DEFAULT now()
+Thời điểm nhận thẻ (từ pack hoặc nguồn khác)
+2.9 Bảng: transactions
+Lịch sử biến động coin. Bất biến — không UPDATE, không DELETE. Append-only.
+Cột
+Kiểu
+Ràng Buộc
+Mô Tả
+id
+UUID
+PK
+Khóa chính
+user_id
+UUID
+FK → users.id NOT NULL
+User thực hiện giao dịch
+type
+ENUM
+NOT NULL
+'BUY_PACK' | 'SELL_CARD' | 'INITIAL_CREDIT' | 'ADMIN_ADJUSTMENT'
+amount
+INTEGER
+NOT NULL
+Số coin thay đổi. Âm = trừ, Dương = cộng
+balance_before
+INTEGER
+NOT NULL
+Số dư trước giao dịch. Snapshot tại thời điểm giao dịch.
+balance_after
+INTEGER
+NOT NULL
+Số dư sau giao dịch. balance_before + amount = balance_after
+description
+TEXT
+NULL
+Mô tả tự động. Ví dụ: 'Mua Gold Pack', 'Admin balance adjustment'
+related_entity_id
+UUID
+NULL
+ID liên kết: BUY_PACK → userPackId, SELL_CARD → cardId, ADMIN_ADJUSTMENT → adminUserId
+created_at
+TIMESTAMPTZ
+NOT NULL DEFAULT now()
+Thời điểm giao dịch. Index để query range nhanh.
+3. Business Rules
+Mã
+Mô Tả
+Module
+BR-01
+Email đăng ký phải là duy nhất trong hệ thống. Kiểm tra case-insensitive.
+Auth
+BR-02
+Mật khẩu tối thiểu 6 ký tự. Validate bằng class-validator trước khi hash.
+Auth
+BR-03
+Đăng nhập thành công trả về JWT access token có hạn 24 giờ (86400 giây).
+Auth
+BR-04
+Endpoint cần xác thực phải yêu cầu JWT hợp lệ. Trả 401 nếu thiếu hoặc sai token.
+Auth
+BR-05
+Chỉ pack có is_active = true mới được hiển thị trong GET /packs và cho phép mua.
+Pack
+BR-06
+Mua pack: trừ coin users.balance và tạo user_packs trong cùng một Prisma transaction. Nếu fail rollback toàn bộ.
+Pack
+BR-07
+Mở pack phải idempotent: nếu user_packs.status đã là 'OPENED', trả về kết quả cũ từ pack_opening_results, KHÔNG random lại.
+Pack
+BR-08
+Không được random lại kết quả cho cùng một userPack đã mở. Kiểm tra status TRƯỚC khi chạy random logic.
+Pack
+BR-09
+Random card dựa trên weighted random từ pack_card_pool. Mỗi lần random 1 thẻ, lặp card_count lần. CÓ THỂ ra trùng thẻ trong 1 lần mở nếu pool cho phép.
+Pack
+BR-10
+Bán thẻ: set status = 'SOLD' trên N inventory_items (IN_INVENTORY) + giảm inventory.quantity (xóa row nếu về 0) + cộng users.balance + ghi transactions trong cùng một Prisma transaction.
+Sell
+BR-11
+Lịch sử giao dịch (transactions) và kết quả mở pack (pack_opening_results) là dữ liệu bất biến — không UPDATE, không DELETE.
+Tất cả
+BR-12
+Inventory phân trang với limit mặc định 20, tối đa 100. Trả 400 nếu limit > 100.
+Inventory
+BR-13
+Không được bán thẻ không thuộc sở hữu của user hiện tại. Kiểm tra inventory record tồn tại với user_id = currentUserId.
+Sell
+BR-14
+Không được bán số lượng vượt quá số thẻ đang có. Kiểm tra inventory.quantity >= requested quantity trước khi trừ.
+Sell
+BR-15
+Pack opening result phải lưu snapshot card_snapshot (JSONB) tại thời điểm mở, bao gồm toàn bộ stats và sellPrice.
+Pack
+BR-16
+User mới được cấp 1000 coin khởi tạo khi đăng ký thành công. Tạo 1 transaction loại INITIAL_CREDIT cùng lúc.
+Auth
+BR-17
+Mọi thao tác thay đổi users.balance phải được bọc trong Prisma transaction. Không update balance bên ngoài transaction.
+Tất cả
+BR-18
+Client không được truyền tham số random vào quá trình mở pack. Server hoàn toàn kiểm soát logic random.
+Pack
+BR-19
+Khi bán hết 1 loại thẻ (quantity về 0): xóa row inventory thay vì để quantity = 0. Đảm bảo GET /inventory/:cardId trả 404 cho thẻ đã bán hết.
+Sell
+BR-20
+GET /inventory/summary và GET /inventory/:cardId phải đăng ký route đúng thứ tự trong NestJS: summary trước, :cardId sau.
+Inventory
+BR-ADM-01
+Tất cả endpoint /admin/* phải kiểm tra JWT hợp lệ VÀ role = 'ADMIN'. Dùng RolesGuard + @Roles('ADMIN') decorator trong NestJS.
+Admin
+BR-ADM-02
+Admin không thể tự xóa, tự khóa, hoặc tự hạ quyền tài khoản của chính mình. Server kiểm tra userId trong JWT so với target userId.
+Admin
+BR-ADM-03
+Khi admin điều chỉnh balance trực tiếp qua PATCH /admin/users/:id, phải ghi 1 transaction loại ADMIN_ADJUSTMENT vào bảng transactions. amount = (newBalance - oldBalance), description = 'Admin balance adjustment'.
+Admin
+BR-ADM-04
+Không cho phép xóa pack đã có user_packs. Admin phải dùng isActive = false để ẩn pack.
+Admin
+BR-ADM-05
+Không cho phép xóa thẻ đang có trong pack_card_pool hoặc inventory của user. Trả 409 với số liệu cụ thể.
+Admin
+BR-ADM-06
+Không cho phép xóa pool entry cuối cùng của 1 pack (pack sẽ không thể mở). Pool phải có ít nhất 1 thẻ.
+Admin
+BR-ADM-07
+Không cho sửa card_count của pack nếu đã có ít nhất 1 user_pack liên quan (dù là PENDING hay OPENED).
+Admin
+BR-ADM-08
+GET /admin/stats/dashboard được cache 5 phút (Redis hoặc in-memory). Không query trực tiếp DB mỗi request.
+Admin
+BR-ADM-09
+Khi admin khóa tài khoản (isActive = false), user đang online sẽ bị ngắt kết nối WebSocket ngay lập tức (server emit event 'account_suspended' trước khi disconnect).
+Admin
+BR-ADM-10
+Enum ADMIN_ADJUSTMENT phải được thêm vào cột type của bảng transactions (bổ sung vào BR-16). Data model transactions.type cập nhật: 'BUY_PACK' | 'SELL_CARD' | 'INITIAL_CREDIT' | 'ADMIN_ADJUSTMENT'.
+Admin + Data Model
+4. API Contract Chi Tiết
+🔒 JWT: truyền qua header Authorization: Bearer <token>  |  🌐 Public: không cần auth  |  🔐 Admin: yêu cầu JWT + role=ADMIN  |  Tất cả request/response body là JSON (Content-Type: application/json)
+📌 Convention lỗi thống nhất: { "statusCode": number, "message": string | string[], "timestamp": "ISO8601", "path": "/endpoint" }
+4.1 Module Auth — Base URL: /auth
+4.1.1 POST /auth/register 🌐 Public
+Tạo tài khoản mới. Hệ thống tự động cấp 1000 coin và ghi transaction INITIAL_CREDIT.
+Field
+Kiểu
+Bắt buộc
+Validate
+Ghi chú
+email
+string
+✅ Có
+format email
+Unique, case-insensitive
+password
+string
+✅ Có
+minLength: 6
+Hash bcrypt trước khi lưu
+username
+string
+❌ Không
+maxLength: 100
+Có thể bỏ trống
+HTTP
+Trường hợp
+Response Body
+201
+Đăng ký thành công
+{ "id": "uuid", "email": "player@example.com", "username": null, "balance": 1000, "createdAt": "2026-04-12T..." }
+400
+Validation fail
+{ "statusCode": 400, "message": ["email must be an email", "password must be longer than or equal to 6 characters"] }
+409
+Email đã tồn tại
+{ "statusCode": 409, "message": "Email already exists" }
+4.1.2 POST /auth/login 🌐 Public
+Xác thực email/mật khẩu, trả JWT access token hạn 24 giờ. JWT payload bao gồm cả trường role.
+HTTP
+Trường hợp
+Response Body
+200
+Đăng nhập thành công
+{ "accessToken": "eyJhbGci...", "tokenType": "Bearer", "expiresIn": 86400 }
+400
+Thiếu field
+{ "statusCode": 400, "message": "Validation failed" }
+401
+Sai email/mật khẩu
+{ "statusCode": 401, "message": "Invalid credentials" }
+403
+Tài khoản bị khóa
+{ "statusCode": 403, "message": "Account has been suspended" }
+4.1.3 GET /me 🔒 Yêu Cầu JWT
+Lấy thông tin user đang đăng nhập.
+HTTP
+Trường hợp
+Response Body
+200
+Thành công
+{ "id": "uuid", "email": "player@example.com", "username": "PlayerOne", "balance": 850, "createdAt": "..." }
+401
+Thiếu/sai JWT
+{ "statusCode": 401, "message": "Unauthorized" }
+4.1.4 PATCH /me 🔒 Yêu Cầu JWT
+Cập nhật thông tin cá nhân. Không cho phép thay đổi email, balance, hoặc role qua endpoint này.
+Field
+Kiểu
+Bắt buộc
+Validate
+Ghi chú
+username
+string
+❌ Không
+maxLength: 100
+Trường duy nhất có thể sửa
+HTTP
+Trường hợp
+Response Body
+200
+Cập nhật thành công
+{ "id": "uuid", "email": "...", "username": "NewName", "balance": 850 }
+400
+Validation fail
+{ "statusCode": 400, "message": "Validation failed" }
+401
+Chưa xác thực
+{ "statusCode": 401, "message": "Unauthorized" }
+4.2 Module Pack — Base URL: /packs, /user-packs
+4.2.1 GET /packs 🌐 Public
+Danh sách pack đang active. Sắp xếp tăng dần theo price.
+Query Param
+Kiểu
+Default
+Max
+Mô tả
+page
+number
+1
+—
+Trang hiện tại
+limit
+number
+10
+50
+Số pack mỗi trang
+Response 200: { "data": [{ "id": "uuid", "name": "Gold Pack", "price": 100, "description": "...", "cardCount": 5, "imageUrl": "..." }], "total": 10, "page": 1, "limit": 10 }
+4.2.2 GET /packs/:id 🌐 Public
+Chi tiết pack bao gồm odds/xác suất theo rarity. Odds được tính từ pack_card_pool tổng hợp theo rarity.
+Response 200: { "id": "uuid", "name": "Gold Pack", "price": 100, "cardCount": 5, "odds": { "COMMON": 0.60, "RARE": 0.25, "EPIC": 0.12, "LEGEND": 0.03 }, "imageUrl": "...", "isActive": true }
+Response 404: { "statusCode": 404, "message": "Pack not found" }
+4.2.3 POST /packs/:id/buy 🔒 Yêu Cầu JWT
+HTTP
+Trường hợp
+Response Body
+201
+Mua thành công
+{ "userPackId": "uuid", "packName": "Gold Pack", "price": 100, "newBalance": 900, "status": "PENDING" }
+400
+Pack ID không hợp lệ
+{ "statusCode": 400, "message": "Invalid pack ID" }
+401
+Chưa xác thực
+{ "statusCode": 401, "message": "Unauthorized" }
+402
+Không đủ coin
+{ "statusCode": 402, "message": "Insufficient balance", "required": 100, "current": 50 }
+404
+Pack không tồn tại/inactive
+{ "statusCode": 404, "message": "Pack not found or inactive" }
+4.2.4 GET /user-packs 🔒 Yêu Cầu JWT
+Danh sách pack user đã mua. Mới nhất trước.
+Query Param
+Kiểu
+Default
+Max
+Mô tả
+status
+string
+ALL
+—
+'PENDING' | 'OPENED' | 'ALL'
+page
+number
+1
+—
+Trang hiện tại
+limit
+number
+20
+100
+Số phần tử mỗi trang
+Response 200: { "data": [{ "id": "uuid", "packName": "Gold Pack", "status": "PENDING", "purchasedAt": "..." }], "total": 5, "page": 1, "limit": 20 }
+4.2.5 GET /user-packs/:id 🔒 Yêu Cầu JWT
+Chi tiết 1 userPack. Nếu đã mở, trả về kết quả thẻ từ pack_opening_results.
+HTTP
+Trường hợp
+Response Body
+200
+Chưa mở
+{ "id": "uuid", "packName": "Gold Pack", "status": "PENDING", "purchasedAt": "..." }
+200
+Đã mở
+{ "id": "uuid", "status": "OPENED", "openedAt": "...", "cards": [{ "cardId": "uuid", "name": "Messi", "rarity": "LEGEND", "overall": 99, "position": "CAM", "imageUrl": "..." }] }
+403
+UserPack không thuộc user
+{ "statusCode": 403, "message": "Forbidden" }
+404
+Không tồn tại
+{ "statusCode": 404, "message": "UserPack not found" }
+4.2.6 POST /user-packs/:id/open 🔒 Yêu Cầu JWT
+Mở pack đã mua. Idempotent. Toàn bộ quá trình trong 1 Prisma transaction.
+⚙️ Luồng xử lý server: (1) Kiểm tra userPack tồn tại + thuộc user → (2) Nếu status=OPENED: trả kết quả cũ từ pack_opening_results ngay → (3) Nếu PENDING: chạy weighted random card_count lần → (4) Lưu pack_opening_results (N rows, có position_in_pack) → (5) Với mỗi thẻ: INSERT 1 inventory_items row (status=IN_INVENTORY, source_result_id=resultId) + UPSERT inventory (quantity += 1) → (6) Update userPack status=OPENED + opened_at → (7) Trả response.
+HTTP
+Trường hợp
+Response Body
+200
+Mở thành công (kể cả idempotent)
+{ "userPackId": "uuid", "openedAt": "...", "cards": [{ "cardId": "uuid", "name": "Ronaldo", "rarity": "EPIC", "overall": 91, "position": "ST", "imageUrl": "..." }] }
+401
+Chưa xác thực
+{ "statusCode": 401, "message": "Unauthorized" }
+403
+UserPack không thuộc user
+{ "statusCode": 403, "message": "Forbidden" }
+404
+Không tồn tại
+{ "statusCode": 404, "message": "UserPack not found" }
+4.3 Module Card — Base URL: /cards
+4.3.1 GET /cards 🌐 Public
+Query Param
+Kiểu
+Default
+Max
+Mô tả
+rarity
+string
+—
+—
+'COMMON' | 'RARE' | 'EPIC' | 'LEGEND'
+position
+string
+—
+—
+GK | CB | LB | RB | CM | CAM | CDM | LW | RW | ST
+search
+string
+—
+—
+Tìm theo tên cầu thủ (ILIKE %keyword%)
+sort
+string
+overall
+—
+'overall' | 'name' | 'rarity'
+order
+string
+desc
+—
+'asc' | 'desc'
+page
+number
+1
+—
+Trang hiện tại
+limit
+number
+20
+100
+Số phần tử mỗi trang. Trả 400 nếu > 100.
+Response 200: { "data": [{ "id": "uuid", "name": "Messi", "overall": 99, "rarity": "LEGEND", "position": "CAM", "imageUrl": "...", "sellPrice": 500 }], "total": 200, "page": 1, "limit": 20 }
+4.3.2 GET /cards/:id 🌐 Public
+Response 200: { "id": "uuid", "sofifaId": 158023, "name": "L. Messi", "overall": 99, "rarity": "LEGEND", "position": "CAM", "club": "Inter Miami", "nation": "Argentina", "imageUrl": "...", "sellPrice": 500, "pace": 85, "shooting": 92, "passing": 95, "dribbling": 98, "defending": 40, "physical": 65 }
+Response 404: { "statusCode": 404, "message": "Card not found" }
+4.4 Module Inventory — Base URL: /inventory
+⚠️ QUAN TRỌNG với NestJS dev: Phải đăng ký route GET /inventory/summary TRƯỚC GET /inventory/:cardId trong controller. Nếu đăng ký ngược, request /inventory/summary sẽ bị route vào handler :cardId với cardId="summary" và trả 404.
+4.4.1 GET /inventory 🔒 Yêu Cầu JWT
+Query Param
+Kiểu
+Default
+Max
+Mô tả
+rarity
+string
+—
+—
+'COMMON' | 'RARE' | 'EPIC' | 'LEGEND'
+position
+string
+—
+—
+Vị trí thi đấu
+search
+string
+—
+—
+Tìm theo tên cầu thủ
+sort
+string
+overall
+—
+'overall' | 'name' | 'rarity' | 'quantity'
+order
+string
+desc
+—
+'asc' | 'desc'
+page
+number
+1
+—
+Trang hiện tại
+limit
+number
+20
+100
+Số phần tử. Trả 400 nếu > 100.
+Response 200: { "data": [{ "cardId": "uuid", "name": "Mbappe", "rarity": "LEGEND", "overall": 97, "position": "ST", "quantity": 2, "sellPrice": 400, "imageUrl": "..." }], "total": 45, "page": 1, "limit": 20 }
+4.4.2 GET /inventory/summary 🔒 Yêu Cầu JWT
+Tổng hợp nhanh về inventory. Đặt route này TRƯỚC /inventory/:cardId trong controller.
+Response 200: { "totalCards": 45, "uniqueCards": 30, "byRarity": { "COMMON": 25, "RARE": 12, "EPIC": 6, "LEGEND": 2 } }
+4.4.3 GET /inventory/:cardId 🔒 Yêu Cầu JWT
+HTTP
+Trường hợp
+Response Body
+200
+Thành công
+{ "cardId": "uuid", "name": "Neymar Jr", "rarity": "EPIC", "overall": 92, "quantity": 3, "sellPrice": 300, "position": "LW", "imageUrl": "..." }
+401
+Chưa xác thực
+{ "statusCode": 401, "message": "Unauthorized" }
+404
+Không có thẻ trong inventory
+{ "statusCode": 404, "message": "Card not found in inventory" }
+4.5 Module Sell — Base URL: /inventory/sell
+4.5.1 POST /inventory/sell 🔒 Yêu Cầu JWT
+Bán một hoặc nhiều thẻ cùng loại lấy coin. Toàn bộ trong 1 Prisma transaction.
+⚙️ Luồng: (1) Kiểm tra inventory tồn tại với user_id = currentUser → (2) Kiểm tra quantity >= requested → (3) Tính coinEarned = sellPrice × quantity → (4) Lấy N inventory_items (status=IN_INVENTORY, FIFO theo acquired_at) → (5) Set status=SOLD trên N items đó → (6) Decrement/xóa row inventory → (7) Increment users.balance → (8) Tạo transaction SELL_CARD → (9) Trả response.
+Field
+Kiểu
+Bắt buộc
+Validate
+Ghi chú
+cardId
+string (UUID)
+✅ Có
+isUUID
+ID thẻ muốn bán
+quantity
+number
+✅ Có
+isInt, min: 1
+Số lượng muốn bán
+HTTP
+Trường hợp
+Response Body
+200
+Bán thành công
+{ "cardId": "uuid", "cardName": "Neymar Jr", "quantitySold": 1, "coinEarned": 300, "newBalance": 1150 }
+400
+quantity < 1 hoặc thiếu field
+{ "statusCode": 400, "message": "quantity must be at least 1" }
+401
+Chưa xác thực
+{ "statusCode": 401, "message": "Unauthorized" }
+403
+Không sở hữu thẻ
+{ "statusCode": 403, "message": "You do not own this card" }
+409
+Bán vượt số lượng
+{ "statusCode": 409, "message": "Insufficient quantity", "owned": 1, "requested": 3 }
+4.6 Module Lịch Sử — Base URL: /transactions, /history
+4.6.1 GET /transactions 🔒 Yêu Cầu JWT
+Query Param
+Kiểu
+Default
+Max
+Mô tả
+type
+string
+ALL
+—
+'BUY_PACK' | 'SELL_CARD' | 'INITIAL_CREDIT' | 'ADMIN_ADJUSTMENT' | 'ALL'
+from
+string
+—
+—
+ISO date filter từ ngày
+to
+string
+—
+—
+ISO date filter đến ngày
+page
+number
+1
+—
+Trang hiện tại
+limit
+number
+20
+100
+Số phần tử mỗi trang
+Response 200: { "data": [{ "id": "uuid", "type": "BUY_PACK", "amount": -100, "balanceBefore": 1000, "balanceAfter": 900, "description": "Mua Gold Pack", "createdAt": "..." }], "total": 12, "page": 1 }
+4.6.2 GET /transactions/:id 🔒 Yêu Cầu JWT
+HTTP
+Trường hợp
+Response Body
+200
+Thành công
+{ "id": "uuid", "type": "SELL_CARD", "amount": 300, "balanceBefore": 850, "balanceAfter": 1150, "description": "Bán Neymar Jr x1", "relatedEntityId": "card-uuid", "createdAt": "..." }
+403
+Không thuộc về user
+{ "statusCode": 403, "message": "Forbidden" }
+404
+Không tồn tại
+{ "statusCode": 404, "message": "Transaction not found" }
+4.6.3 GET /history 🔒 Yêu Cầu JWT
+Lịch sử mở pack. Mỗi record gồm thông tin pack và danh sách thẻ nhận được.
+Response 200: { "data": [{ "userPackId": "uuid", "packName": "Gold Pack", "openedAt": "...", "cards": [{ "cardId": "uuid", "name": "Messi", "rarity": "LEGEND", "overall": 99 }] }], "total": 8, "page": 1 }
+4.6.4 GET /history/:userPackId 🔒 Yêu Cầu JWT
+Response 200: { "userPackId": "uuid", "packName": "Gold Pack", "openedAt": "...", "cards": [{ "cardId": "uuid", "name": "Ronaldo", "rarity": "EPIC", "overall": 91, "position": "ST", "imageUrl": "...", "sellPrice": 350 }] }
+4.7 GET /health 🌐 Public
+Kiểm tra trạng thái ứng dụng và kết nối DB.
+Response 200: { "status": "ok", "timestamp": "2026-04-12T...", "database": "connected", "uptime": 3600 }
+Response 503: { "status": "error", "database": "disconnected", "message": "Database unreachable" }
+4.8 Module Admin — Base URL: /admin
+📌 Lưu ý Data Model: Bảng users cần thêm cột role ENUM ('USER' | 'ADMIN') NOT NULL DEFAULT 'USER'. Admin được tạo thủ công hoặc qua seed script, KHÔNG có API public để tự nâng quyền.
+4.8.1 GET /admin/users 🔐 Admin
+Danh sách tất cả user trong hệ thống. Hỗ trợ tìm kiếm, lọc, phân trang. Không trả về password_hash.
+Query Param
+Kiểu
+Default
+Max
+Mô tả
+search
+string
+—
+—
+Tìm theo email hoặc username (ILIKE)
+sort
+string
+createdAt
+—
+'createdAt' | 'balance' | 'email' | 'username'
+order
+string
+desc
+—
+'asc' | 'desc'
+page
+number
+1
+—
+Trang hiện tại
+limit
+number
+20
+100
+Số user mỗi trang. Trả 400 nếu > 100.
+Response 200: { "data": [{ "id": "uuid", "email": "user@example.com", "username": "PlayerOne", "balance": 850, "role": "USER", "createdAt": "...", "totalPacksBought": 12, "totalCardsSold": 5 }], "total": 150, "page": 1, "limit": 20 }
+4.8.2 GET /admin/users/:id 🔐 Admin
+Chi tiết 1 user, bao gồm thống kê tổng quan (số pack đã mua, số thẻ đang có, tổng coin đã chi/nhận).
+HTTP
+Trường hợp
+Response Body
+200
+Thành công
+{ "id": "uuid", "email": "...", "username": "...", "balance": 850, "role": "USER", "createdAt": "...", "stats": { "totalPacksBought": 12, "totalPacksOpened": 10, "totalCardsOwned": 45, "totalCoinSpent": 1200, "totalCoinEarned": 500 } }
+403
+Không có quyền
+{ "statusCode": 403, "message": "Forbidden" }
+404
+Không tồn tại
+{ "statusCode": 404, "message": "User not found" }
+4.8.3 PATCH /admin/users/:id 🔐 Admin
+Cập nhật thông tin user. Cho phép admin điều chỉnh balance (cấp/trừ coin), khóa/mở khóa tài khoản, và đổi role.
+Field
+Kiểu
+Bắt buộc
+Validate
+Ghi chú
+balance
+number
+❌ Không
+isInt, min: 0
+Override balance trực tiếp. Tự động ghi transaction ADMIN_ADJUSTMENT.
+username
+string
+❌ Không
+maxLength: 100
+Đổi username
+role
+string
+❌ Không
+'USER' | 'ADMIN'
+Nâng/hạ quyền user
+isActive
+boolean
+❌ Không
+isBoolean
+false = khóa tài khoản, không thể đăng nhập
+HTTP
+Trường hợp
+Response Body
+200
+Cập nhật thành công
+{ "id": "uuid", "email": "...", "username": "...", "balance": 2000, "role": "USER", "isActive": true }
+400
+Validation fail
+{ "statusCode": 400, "message": "Validation failed" }
+403
+Không có quyền
+{ "statusCode": 403, "message": "Forbidden" }
+404
+Không tồn tại
+{ "statusCode": 404, "message": "User not found" }
+4.8.4 DELETE /admin/users/:id 🔐 Admin
+Xóa mềm (soft delete) tài khoản user. Không xóa dữ liệu liên quan (inventory, transactions). Set isActive = false và deletedAt = now().
+⚠️ Soft delete — không xóa cứng. Dữ liệu lịch sử (transactions, pack_opening_results) được giữ nguyên để audit trail. Admin không thể tự xóa tài khoản mình.
+HTTP
+Trường hợp
+Response Body
+200
+Xóa thành công
+{ "message": "User soft-deleted successfully", "deletedAt": "2026-04-13T..." }
+400
+Tự xóa chính mình
+{ "statusCode": 400, "message": "Cannot delete your own admin account" }
+403
+Không có quyền
+{ "statusCode": 403, "message": "Forbidden" }
+404
+Không tồn tại
+{ "statusCode": 404, "message": "User not found" }
+4.8.5 POST /admin/packs 🔐 Admin
+Tạo pack definition mới. Sau khi tạo, pack ở trạng thái is_active = false (không hiển thị công khai) cho đến khi admin kích hoạt.
+Field
+Kiểu
+Bắt buộc
+Validate
+Ghi chú
+name
+string
+✅ Có
+maxLength: 255
+Tên pack, ví dụ: 'Diamond Pack'
+description
+string
+❌ Không
+—
+Mô tả pack
+price
+number
+✅ Có
+isInt, min: 1
+Giá mua bằng coin
+cardCount
+number
+✅ Có
+isInt, min: 1
+Số thẻ nhận được mỗi lần mở
+imageUrl
+string
+❌ Không
+isURL
+URL ảnh đại diện pack
+isActive
+boolean
+❌ Không
+isBoolean, default: false
+Trạng thái kích hoạt ban đầu
+HTTP
+Trường hợp
+Response Body
+201
+Tạo thành công
+{ "id": "uuid", "name": "Diamond Pack", "price": 500, "cardCount": 10, "isActive": false, "createdAt": "..." }
+400
+Validation fail
+{ "statusCode": 400, "message": ["name must not be empty", "price must be a positive integer"] }
+403
+Không có quyền
+{ "statusCode": 403, "message": "Forbidden" }
+4.8.6 PATCH /admin/packs/:id 🔐 Admin
+Cập nhật thông tin pack. Cho phép sửa tên, mô tả, giá, imageUrl, và toggle is_active. Không cho sửa card_count nếu đã có user_packs liên quan (tránh inconsistency).
+Field
+Kiểu
+Bắt buộc
+Validate
+Ghi chú
+name
+string
+❌ Không
+maxLength: 255
+Tên pack
+description
+string
+❌ Không
+—
+Mô tả pack
+price
+number
+❌ Không
+isInt, min: 1
+Giá mua bằng coin
+imageUrl
+string
+❌ Không
+isURL
+URL ảnh đại diện
+isActive
+boolean
+❌ Không
+isBoolean
+Bật/tắt hiển thị và khả năng mua
+HTTP
+Trường hợp
+Response Body
+200
+Cập nhật thành công
+{ "id": "uuid", "name": "...", "price": 200, "isActive": true, "updatedAt": "..." }
+400
+Không cho sửa cardCount
+{ "statusCode": 400, "message": "Cannot change cardCount after packs have been sold" }
+403
+Không có quyền
+{ "statusCode": 403, "message": "Forbidden" }
+404
+Không tồn tại
+{ "statusCode": 404, "message": "Pack not found" }
+4.8.7 DELETE /admin/packs/:id 🔐 Admin
+Xóa pack definition. Chỉ cho phép nếu chưa có user_packs nào liên quan. Nếu đã có → set is_active = false thay vì xóa.
+HTTP
+Trường hợp
+Response Body
+200
+Xóa thành công
+{ "message": "Pack deleted successfully" }
+409
+Đã có user đã mua
+{ "statusCode": 409, "message": "Cannot delete pack with existing purchases. Set isActive=false instead.", "purchaseCount": 42 }
+403
+Không có quyền
+{ "statusCode": 403, "message": "Forbidden" }
+404
+Không tồn tại
+{ "statusCode": 404, "message": "Pack not found" }
+4.8.8 GET /admin/packs/:id/pool 🔐 Admin
+Xem toàn bộ danh sách thẻ trong pool của 1 pack, kèm weight và xác suất tính toán.
+Response 200: { "packId": "uuid", "packName": "Gold Pack", "totalWeight": 100, "pool": [{ "id": "uuid", "cardId": "uuid", "cardName": "L. Messi", "rarity": "LEGEND", "weight": 3, "probability": 0.03 }, ...] }
+4.8.9 POST /admin/packs/:id/pool 🔐 Admin
+Thêm thẻ vào pool của pack.
+Field
+Kiểu
+Bắt buộc
+Validate
+Ghi chú
+cardId
+string (UUID)
+✅ Có
+isUUID
+ID thẻ muốn thêm vào pool
+weight
+number
+✅ Có
+isInt, min: 1
+Trọng số tương đối
+HTTP
+Trường hợp
+Response Body
+201
+Thêm thành công
+{ "id": "uuid", "packId": "uuid", "cardId": "uuid", "weight": 10, "probability": 0.05 }
+400
+Validation fail
+{ "statusCode": 400, "message": "Validation failed" }
+409
+Thẻ đã có trong pool
+{ "statusCode": 409, "message": "Card already exists in this pack pool" }
+404
+Pack/Card không tồn tại
+{ "statusCode": 404, "message": "Pack or Card not found" }
+4.8.10 PATCH /admin/packs/:packId/pool/:poolId 🔐 Admin
+Cập nhật weight của 1 thẻ trong pool.
+Field
+Kiểu
+Bắt buộc
+Validate
+Ghi chú
+weight
+number
+✅ Có
+isInt, min: 1
+Weight mới
+HTTP
+Trường hợp
+Response Body
+200
+Cập nhật thành công
+{ "id": "uuid", "weight": 20, "probability": 0.08 }
+404
+Không tìm thấy
+{ "statusCode": 404, "message": "Pool entry not found" }
+4.8.11 DELETE /admin/packs/:packId/pool/:poolId 🔐 Admin
+Xóa thẻ khỏi pool. Lưu ý: nếu pool chỉ còn 1 thẻ, không cho xóa (pack sẽ bị lỗi khi mở).
+HTTP
+Trường hợp
+Response Body
+200
+Xóa thành công
+{ "message": "Pool entry removed" }
+400
+Pool chỉ còn 1 thẻ
+{ "statusCode": 400, "message": "Cannot remove last card from pool" }
+404
+Không tìm thấy
+{ "statusCode": 404, "message": "Pool entry not found" }
+4.8.12 POST /admin/cards 🔐 Admin
+Tạo thẻ cầu thủ mới. Đây là thao tác seed/import data — thường chạy 1 lần, nhưng cần API để bổ sung thẻ mới theo mùa giải.
+Field
+Kiểu
+Bắt buộc
+Validate
+Ghi chú
+sofifaId
+number
+✅ Có
+isInt, unique
+ID từ nguồn dữ liệu SoFIFA
+name
+string
+✅ Có
+maxLength: 255
+Tên cầu thủ
+overall
+number
+✅ Có
+isInt, min:1, max:99
+Chỉ số tổng hợp
+rarity
+string
+✅ Có
+'COMMON'|'RARE'|'EPIC'|'LEGEND'
+Độ hiếm thẻ
+position
+string
+✅ Có
+GK|CB|LB|RB|CM|CAM|CDM|LW|RW|ST
+Vị trí thi đấu
+sellPrice
+number
+✅ Có
+isInt, min: 1
+Giá bán (coin)
+club
+string
+❌ Không
+maxLength: 100
+Câu lạc bộ
+nation
+string
+❌ Không
+maxLength: 100
+Quốc tịch
+imageUrl
+string
+❌ Không
+isURL
+URL ảnh thẻ
+pace/shooting/passing/dribbling/defending/physical
+number
+❌ Không
+isInt, 0-99
+Các chỉ số kỹ thuật
+HTTP
+Trường hợp
+Response Body
+201
+Tạo thành công
+{ "id": "uuid", "sofifaId": 158023, "name": "L. Messi", "overall": 99, "rarity": "LEGEND", ... }
+400
+Validation fail
+{ "statusCode": 400, "message": ["rarity must be one of: COMMON, RARE, EPIC, LEGEND"] }
+409
+sofifaId trùng
+{ "statusCode": 409, "message": "Card with this sofifaId already exists" }
+4.8.13 PATCH /admin/cards/:id 🔐 Admin
+Cập nhật thông tin thẻ. Thay đổi sellPrice sẽ không ảnh hưởng đến card_snapshot đã lưu trong pack_opening_results (bất biến).
+HTTP
+Trường hợp
+Response Body
+200
+Cập nhật thành công
+{ "id": "uuid", "name": "...", "overall": 99, "sellPrice": 600, ... }
+400
+Validation fail
+{ "statusCode": 400, "message": "Validation failed" }
+404
+Không tồn tại
+{ "statusCode": 404, "message": "Card not found" }
+4.8.14 DELETE /admin/cards/:id 🔐 Admin
+Xóa thẻ khỏi hệ thống. Chỉ cho phép nếu thẻ không còn trong bất kỳ pack pool nào và không có ai đang sở hữu trong inventory.
+HTTP
+Trường hợp
+Response Body
+200
+Xóa thành công
+{ "message": "Card deleted successfully" }
+409
+Thẻ đang được dùng
+{ "statusCode": 409, "message": "Card is referenced in pack pools or user inventories", "poolCount": 2, "inventoryCount": 15 }
+404
+Không tồn tại
+{ "statusCode": 404, "message": "Card not found" }
+4.8.15 GET /admin/stats/dashboard 🔐 Admin
+Thống kê tổng quan hệ thống cho dashboard admin. Cached 5 phút để giảm tải DB.
+Response 200: { "users": { "total": 1520, "newToday": 45, "activeToday": 230 }, "packs": { "totalSold": 8400, "totalOpened": 7800, "revenueToday": 45000 }, "cards": { "totalTypes": 200, "totalInCirculation": 125000 }, "transactions": { "totalVolume": 980000, "todayVolume": 45000 }, "topCards": [{ "cardId": "uuid", "name": "L. Messi", "timesOpened": 320 }], "generatedAt": "2026-04-13T..." }
+4.8.16 GET /admin/stats/revenue 🔐 Admin
+Báo cáo doanh thu coin theo thời gian. Hỗ trợ filter theo khoảng ngày và granularity (ngày/tuần/tháng).
+Query Param
+Kiểu
+Default
+Max
+Mô tả
+from
+string
+7 ngày trước
+—
+ISO date bắt đầu, ví dụ: '2026-04-01'
+to
+string
+hôm nay
+—
+ISO date kết thúc
+granularity
+string
+day
+—
+'day' | 'week' | 'month'
+Response 200: { "from": "2026-04-01", "to": "2026-04-13", "granularity": "day", "data": [{ "date": "2026-04-01", "coinIn": 45000, "coinOut": 12000, "netRevenue": 33000, "packsSold": 450, "cardsSold": 80 }], "summary": { "totalCoinIn": 580000, "totalCoinOut": 156000, "netRevenue": 424000 } }
+4.8.17 GET /admin/stats/users/:id 🔐 Admin
+Thống kê chi tiết của 1 user cụ thể: lịch sử giao dịch, pack đã mở, thẻ đang có, timeline hoạt động.
+HTTP
+Trường hợp
+Response Body
+200
+Thành công
+{ "userId": "uuid", "email": "...", "balance": 850, "stats": { "packsTotal": 12, "packsOpened": 10, "uniqueCards": 30, "totalCards": 45, "coinSpent": 1200, "coinEarned": 500 }, "recentTransactions": [...], "recentPacks": [...] }
+404
+Không tồn tại
+{ "statusCode": 404, "message": "User not found" }
+4.8.18 GET /admin/transactions 🔐 Admin
+Xem toàn bộ lịch sử giao dịch của mọi user. Hỗ trợ filter theo user, loại giao dịch, khoảng thời gian.
+Query Param
+Kiểu
+Default
+Max
+Mô tả
+userId
+string (UUID)
+—
+—
+Filter theo user cụ thể
+type
+string
+ALL
+—
+'BUY_PACK' | 'SELL_CARD' | 'INITIAL_CREDIT' | 'ADMIN_ADJUSTMENT' | 'ALL'
+from
+string
+—
+—
+ISO date filter từ ngày
+to
+string
+—
+—
+ISO date filter đến ngày
+page
+number
+1
+—
+Trang hiện tại
+limit
+number
+20
+100
+Số phần tử mỗi trang
+Response 200: { "data": [{ "id": "uuid", "userId": "uuid", "userEmail": "player@example.com", "type": "BUY_PACK", "amount": -100, "balanceBefore": 1000, "balanceAfter": 900, "description": "Mua Gold Pack", "createdAt": "..." }], "total": 8400, "page": 1 }
+5. Bảng Tổng Hợp Toàn Bộ API
+Method
+Endpoint
+Auth
+Mô tả
+Module
+POST
+/auth/register
+🌐
+Đăng ký tài khoản mới
+Auth
+POST
+/auth/login
+🌐
+Đăng nhập, lấy JWT (payload gồm role)
+Auth
+GET
+/me
+🔒
+Thông tin user hiện tại
+Auth
+PATCH
+/me
+🔒
+Cập nhật thông tin cá nhân
+Auth
+GET
+/packs
+🌐
+Danh sách pack đang bán
+Pack
+GET
+/packs/:id
+🌐
+Chi tiết pack + odds
+Pack
+POST
+/packs/:id/buy
+🔒
+Mua pack
+Pack
+GET
+/user-packs
+🔒
+Danh sách pack đã mua
+Pack
+GET
+/user-packs/:id
+🔒
+Chi tiết 1 userPack
+Pack
+POST
+/user-packs/:id/open
+🔒
+Mở pack (+ trigger WebSocket events)
+Pack
+GET
+/cards
+🌐
+Danh sách thẻ cầu thủ
+Card
+GET
+/cards/:id
+🌐
+Chi tiết 1 thẻ
+Card
+GET
+/inventory
+🔒
+Bộ sưu tập của user
+Inventory
+GET
+/inventory/summary
+🔒
+Tổng quan inventory (route TRƯỚC :cardId)
+Inventory
+GET
+/inventory/:cardId
+🔒
+Chi tiết thẻ trong inventory
+Inventory
+POST
+/inventory/sell
+🔒
+Bán thẻ lấy coin
+Sell
+GET
+/transactions
+🔒
+Lịch sử biến động coin
+History
+GET
+/transactions/:id
+🔒
+Chi tiết 1 giao dịch
+History
+GET
+/history
+🔒
+Lịch sử mở pack
+History
+GET
+/history/:userPackId
+🔒
+Chi tiết 1 lần mở pack
+History
+GET
+/health
+🌐
+Health check hệ thống
+System
+GET
+/admin/users
+🔐 Admin
+Danh sách tất cả user
+Admin
+GET
+/admin/users/:id
+🔐 Admin
+Chi tiết user + stats tổng quan
+Admin
+PATCH
+/admin/users/:id
+🔐 Admin
+Cập nhật user (balance, role, isActive)
+Admin
+DELETE
+/admin/users/:id
+🔐 Admin
+Soft delete tài khoản user
+Admin
+GET
+/admin/stats/dashboard
+🔐 Admin
+Dashboard thống kê hệ thống (cached 5 phút)
+Admin
+GET
+/admin/stats/revenue
+🔐 Admin
+Báo cáo doanh thu coin theo thời gian
+Admin
+GET
+/admin/stats/users/:id
+🔐 Admin
+Thống kê chi tiết 1 user
+Admin
+POST
+/admin/packs
+🔐 Admin
+Tạo pack definition mới
+Admin
+PATCH
+/admin/packs/:id
+🔐 Admin
+Cập nhật thông tin pack
+Admin
+DELETE
+/admin/packs/:id
+🔐 Admin
+Xóa pack (chỉ khi chưa có giao dịch)
+Admin
+GET
+/admin/packs/:id/pool
+🔐 Admin
+Xem pool + probability của pack
+Admin
+POST
+/admin/packs/:id/pool
+🔐 Admin
+Thêm thẻ vào pool
+Admin
+PATCH
+/admin/packs/:packId/pool/:poolId
+🔐 Admin
+Cập nhật weight trong pool
+Admin
+DELETE
+/admin/packs/:packId/pool/:poolId
+🔐 Admin
+Xóa thẻ khỏi pool
+Admin
+POST
+/admin/cards
+🔐 Admin
+Tạo thẻ cầu thủ mới
+Admin
+PATCH
+/admin/cards/:id
+🔐 Admin
+Cập nhật thông tin thẻ
+Admin
+DELETE
+/admin/cards/:id
+🔐 Admin
+Xóa thẻ (chỉ khi không có ràng buộc)
+Admin
+GET
+/admin/transactions
+🔐 Admin
+Xem toàn bộ giao dịch mọi user
+Admin
+6. WebSocket Contract
+⚙️ Stack: Socket.IO qua @nestjs/websockets + @nestjs/platform-socket.io | Namespace: /game | Auth: JWT qua handshake auth header | Ping interval: 25s | Ping timeout: 60s
+6.1 Xác Thực Kết Nối
+Client gửi JWT khi khởi tạo kết nối. Server xác thực trong handleConnection. Từ chối ngay nếu thiếu hoặc sai token. Nếu tài khoản bị khóa (isActive = false), server disconnect ngay với code ACCOUNT_SUSPENDED.
+Client code: const socket = io("wss://api.example.com/game", { auth: { token: "Bearer eyJhbGci..." }, transports: ["websocket", "polling"] });
+Trường hợp
+Kết quả
+Mô tả
+Token hợp lệ
+✅ Kết nối thành công
+Server join client vào room riêng: room-{userId}
+Thiếu token
+❌ Disconnect ngay
+Server gọi client.disconnect() trong handleConnection
+Token hết hạn
+❌ Disconnect ngay
+Trả event error với code TOKEN_EXPIRED trước khi disconnect
+Tài khoản bị khóa
+❌ Disconnect ngay
+Trả event error với code ACCOUNT_SUSPENDED trước khi disconnect
+6.2 Danh Sách Events
+Event
+Chiều
+Mô tả
+pack:open_request
+Client → Server
+Client yêu cầu mở pack. Payload: { userPackId: "uuid" }
+pack:open_started
+Server → Client
+Server xác nhận bắt đầu. Payload: { userPackId, packName, totalCards, startedAt }
+pack:card_revealed
+Server → Client
+Server reveal từng thẻ, delay 500ms/thẻ. Payload: { userPackId, index, totalCards, card: { cardId, name, rarity, overall, position, club, imageUrl, isNew } }
+pack:open_completed
+Server → Client
+Sau khi tất cả thẻ reveal xong. Payload: { userPackId, openedAt, cards: [...], newBalance, summary: { COMMON, RARE, EPIC, LEGEND } }
+balance:updated
+Server → Client
+Push khi balance thay đổi (mua/mở/bán/admin adjustment). Payload: { previousBalance, newBalance, delta, reason, transactionId, timestamp }
+notification:push
+Server → Client
+Thông báo: nhận thẻ LEGEND, milestone. Payload: { type, title, message, icon, autoClose, relatedEntity }
+account:suspended
+Server → Client
+Push khi admin khóa tài khoản đang online. Payload: { reason, timestamp }. Server disconnect ngay sau.
+error
+Server → Client
+Lỗi xử lý. Payload: { code, message, relatedEvent, userPackId, timestamp }
+ping / pong
+2 chiều
+Application-level heartbeat. Client ping → Server pong ngay lập tức.
+6.3 Luồng Mở Pack Qua WebSocket (17 Bước)
+Bước
+Bên thực hiện
+Hành động
+Giao thức
+1
+Client
+Kết nối WS tới wss://api/game với JWT trong auth header
+WS handshake
+2
+Server
+Xác thực JWT, kiểm tra isActive, join client vào room-{userId}
+handleConnection
+3
+Client
+Gọi POST /packs/:id/buy → nhận userPackId
+REST API
+4
+Server
+Trừ coin, tạo userPack PENDING, push balance:updated
+REST + WS emit
+5
+Client
+Emit pack:open_request với userPackId
+WebSocket emit
+6
+Server
+Validate quyền sở hữu, kiểm tra status PENDING
+WS handler
+7
+Server
+Emit pack:open_started về room-{userId}
+WS emit → client
+8
+Client
+Hiển thị animation loading / countdown
+UI
+9
+Server
+Chạy weighted random → tạo danh sách card_count thẻ
+Business logic
+10
+Server
+Lưu pack_opening_results (N rows, có position_in_pack) vào DB — atomic
+Prisma transaction
+11
+Server
+Loop: emit pack:card_revealed lần lượt từng thẻ (delay 500ms/thẻ, server-side)
+WS emit × N
+12
+Client
+Hiển thị animation lật thẻ lần lượt theo từng event
+UI
+13
+Server
+INSERT inventory_items (1 row/thẻ) + Upsert inventory + update userPack status=OPENED + opened_at — atomic
+Prisma transaction
+14
+Server
+Emit pack:open_completed với full summary + newBalance
+WS emit → client
+15
+Server
+Emit balance:updated với delta coin (không trễ quá 200ms so với transaction)
+WS emit → client
+16
+Server
+Nếu có thẻ LEGEND → emit notification:push
+WS emit → client
+17
+Client
+Hiển thị màn hình tổng kết, cập nhật balance UI
+UI
+6.4 Mã Lỗi WebSocket
+Mã lỗi
+Khi nào xảy ra
+Hành động gợi ý phía client
+UNAUTHORIZED
+JWT thiếu hoặc không hợp lệ khi connect
+Redirect về trang đăng nhập
+TOKEN_EXPIRED
+JWT hết hạn trong phiên kết nối
+Refresh token và reconnect
+ACCOUNT_SUSPENDED
+Admin khóa tài khoản đang online
+Hiển thị thông báo bị khóa, redirect về trang login
+PACK_NOT_FOUND
+userPackId không tồn tại
+Hiển thị lỗi, reload danh sách user-packs
+PACK_FORBIDDEN
+UserPack không thuộc về user
+Hiển thị lỗi, không retry
+PACK_ALREADY_OPENED
+UserPack đã OPENED nhưng request qua WS lần đầu
+Fetch kết quả cũ qua REST GET /history/:id
+PACK_OPEN_FAILED
+Lỗi DB hoặc lỗi hệ thống khi xử lý
+Hiển thị lỗi, cho phép retry sau 3 giây
+RATE_LIMITED
+Client gửi quá nhiều event (> 10 emit/giây)
+Exponential backoff, thử lại sau
+6.5 Business Rules WebSocket
+Mã
+Mô tả
+BR-WS-01
+Server chỉ push event vào room riêng room-{userId}, KHÔNG broadcast toàn server.
+BR-WS-02
+Idempotency WS: nếu client emit pack:open_request cho userPack đã OPENED → server push lại kết quả cũ (không random lại) + emit pack:open_completed ngay.
+BR-WS-03
+Mỗi client chỉ được mở tối đa 1 pack cùng lúc. Nếu có pack đang xử lý → server từ chối yêu cầu mới, trả error RATE_LIMITED.
+BR-WS-04
+Delay giữa các pack:card_revealed PHẢI được cấu hình server-side (không để client kiểm soát). Giá trị mặc định: 500ms/thẻ.
+BR-WS-05
+balance:updated phải được push đồng thời với REST response — không trễ hơn 200ms so với thời điểm transaction hoàn thành.
+BR-WS-06
+Khi client disconnect giữa chừng: server vẫn tiếp tục xử lý và lưu kết quả vào DB. Client reconnect → dùng REST GET /user-packs/:id hoặc /history/:id để lấy lại kết quả.
+BR-WS-07
+Rate limit: mỗi user tối đa 10 WebSocket emit/giây. Vượt quá → nhận event error với code RATE_LIMITED.
+BR-WS-08
+Khi admin khóa tài khoản user đang online: server emit account:suspended (với reason và timestamp) trước, sau đó gọi client.disconnect(). Đây là event mới thêm từ v2.3.
+7. Yêu Cầu Phi Chức Năng (NFR)
+Mã
+Hạng mục
+Yêu cầu
+Ghi chú
+NFR-01
+Hiệu năng
+P95 response time cho endpoint read < 300ms
+Không tính lúc cao điểm bất thường
+NFR-02
+Hiệu năng
+P95 response time cho POST /user-packs/:id/open < 700ms
+Do có bước weighted random và ghi nhiều bảng
+NFR-03
+Hiệu năng
+P95 response time cho admin dashboard < 500ms
+Do được cache 5 phút
+NFR-04
+Độ sẵn sàng
+Availability >= 99.5% / tháng
+Tối đa ~3.6 giờ downtime/tháng
+NFR-05
+Bảo mật
+Tất cả protected endpoint phải xác thực JWT
+Trả 401 nếu thiếu hoặc token không hợp lệ
+NFR-06
+Bảo mật
+Admin endpoint phải kiểm tra role = ADMIN
+Trả 403 nếu không có quyền
+NFR-07
+Quan sát
+Log đầy đủ: requestId, userId, endpoint, duration, role (nếu admin)
+Phục vụ debug và audit trail
+NFR-08
+Chuẩn lỗi
+Global exception filter — response lỗi nhất quán
+Cấu trúc: { statusCode, message, timestamp, path }
+NFR-09
+Độ tin cậy
+Dữ liệu quan trọng cần Prisma transaction và retry an toàn
+Áp dụng cho buy/open/sell/admin balance adjustment
+7.1 Bảo Mật
+Mã
+Yêu cầu
+Triển khai gợi ý
+SEC-01
+Password phải được hash bằng thuật toán an toàn
+bcrypt với cost >= 12, hoặc argon2id
+SEC-02
+Không trả về thông tin nhạy cảm trong response
+Loại bỏ password_hash, deleted_at khỏi DTO user thường
+SEC-03
+Validate input ở tất cả endpoint
+class-validator + ValidationPipe toàn cục trong NestJS
+SEC-04
+Rate-limit auth endpoint chống brute-force
+Giới hạn 10 lần / IP / 15 phút cho POST /auth/login (dùng @nestjs/throttler)
+SEC-05
+Idempotency cho open pack chống replay
+Kiểm tra status userPack TRƯỚC khi xử lý random. Trả kết quả cũ nếu đã OPENED.
+SEC-06
+Admin API phải kiểm tra role trong mọi request
+Dùng RolesGuard + @Roles('ADMIN') decorator. Không dựa vào client truyền role.
+8. Acceptance Criteria (UAT)
+8.1 REST API — User
+Mã
+Mô tả
+Điều kiện pass
+AC-01
+Đăng ký email mới
+HTTP 201, tạo user với balance = 1000, tạo transaction INITIAL_CREDIT
+AC-02
+Đăng ký email trùng
+HTTP 409, không tạo user mới
+AC-03
+Đăng nhập đúng
+HTTP 200, có accessToken hợp lệ, tokenType = Bearer, expiresIn = 86400
+AC-04
+Đăng nhập khi tài khoản bị khóa
+HTTP 403 với message 'Account has been suspended'
+AC-05
+Gọi /me không có token
+HTTP 401
+AC-06
+Cập nhật username
+HTTP 200, username thay đổi. Email và balance KHÔNG thay đổi.
+AC-07
+GET /packs
+Chỉ trả pack is_active=true, sắp xếp tăng dần theo price
+AC-08
+GET /packs/:id hợp lệ
+HTTP 200, có trường odds với 4 rarity, tổng odds = 1.0
+AC-09
+GET /packs/:id không tồn tại
+HTTP 404
+AC-10
+Mua pack thành công
+Balance giảm đúng giá pack, tạo userPack status PENDING, ghi transaction BUY_PACK
+AC-11
+Mua pack thiếu coin
+HTTP 402 kèm required và current balance
+AC-12
+GET /user-packs?status=PENDING
+Chỉ trả userPack chưa mở của user hiện tại
+AC-13
+Mở pack không thuộc user
+HTTP 403
+AC-14
+Mở pack 2 lần (idempotent)
+Response body lần 1 = lần 2. Không có record trùng trong pack_opening_results.
+AC-15
+GET /cards?rarity=LEGEND
+Chỉ trả thẻ rarity LEGEND
+AC-16
+Inventory filter/sort/pagination
+Đúng filter, đúng thứ tự sort, đúng trang
+AC-17
+GET /inventory/summary
+Tổng số thẻ và phân bổ rarity chính xác. Không bị 404 do route conflict.
+AC-18
+Bán thẻ thành công
+inventory.quantity giảm, balance tăng đúng sell_price × quantity, ghi transaction SELL_CARD
+AC-19
+Bán thẻ vượt số lượng
+HTTP 409 kèm owned và requested
+AC-20
+Bán hết 1 loại thẻ
+inventory row bị xóa. GET /inventory/:cardId trả 404.
+AC-21
+GET /transactions?type=BUY_PACK
+Chỉ trả giao dịch BUY_PACK, mới nhất trước
+AC-22
+GET /history
+Trả lịch sử mở pack kèm thông tin thẻ từ card_snapshot
+AC-23
+GET /health khi DB connected
+HTTP 200, status ok, database connected
+AC-24
+GET /health khi DB lỗi
+HTTP 503
+8.2 REST API — Admin
+Mã
+Mô tả
+Điều kiện pass
+AC-ADM-01
+Gọi /admin/* không có JWT
+HTTP 401
+AC-ADM-02
+Gọi /admin/* với JWT user thường
+HTTP 403
+AC-ADM-03
+GET /admin/users với search
+Kết quả chứa đúng user, không có password_hash
+AC-ADM-04
+Admin điều chỉnh balance user
+Balance thay đổi đúng, tạo transaction ADMIN_ADJUSTMENT, balance_before + amount = balance_after
+AC-ADM-05
+Admin xóa pack chưa có giao dịch
+HTTP 200, pack bị xóa khỏi DB
+AC-ADM-06
+Admin xóa pack đã có giao dịch
+HTTP 409 kèm purchaseCount
+AC-ADM-07
+Admin thêm thẻ vào pool
+201, thẻ xuất hiện trong /admin/packs/:id/pool với probability đúng
+AC-ADM-08
+Admin xóa pool entry cuối
+HTTP 400, không cho xóa
+AC-ADM-09
+Admin tạo card mới
+HTTP 201, card có thể query qua GET /cards
+AC-ADM-10
+Admin xóa card đang trong pool
+HTTP 409 kèm poolCount và inventoryCount
+AC-ADM-11
+Admin khóa user đang online
+User bị disconnect WS, không thể login lại cho đến khi mở khóa
+AC-ADM-12
+GET /admin/stats/dashboard
+HTTP 200, trả đúng các trường stats, response < 500ms (do cache)
+AC-ADM-13
+Admin tự xóa tài khoản mình
+HTTP 400 với message rõ ràng
+8.3 WebSocket
+Mã
+Mô tả
+Điều kiện pass
+AC-WS-01
+Kết nối WS không có JWT
+Server disconnect ngay, không cho vào room
+AC-WS-02
+Kết nối WS với JWT hợp lệ
+Kết nối thành công, server join vào room-{userId}
+AC-WS-03
+Kết nối WS khi tài khoản bị khóa
+Server emit account:suspended rồi disconnect ngay
+AC-WS-04
+Emit pack:open_request với userPack hợp lệ
+Nhận lần lượt: pack:open_started → N × pack:card_revealed → pack:open_completed
+AC-WS-05
+Số pack:card_revealed đúng với cardCount
+Đếm event nhận được = card_count trong pack_definitions
+AC-WS-06
+Emit pack:open_request cho userPack đã OPENED
+Nhận pack:open_completed với dữ liệu cũ, không có dữ liệu mới
+AC-WS-07
+balance:updated sau khi mua pack
+delta = -(giá pack), newBalance chính xác
+AC-WS-08
+balance:updated sau khi bán thẻ
+delta = +(sell_price × quantity), newBalance chính xác
+AC-WS-09
+balance:updated sau admin adjustment
+delta = (newBalance - oldBalance), reason = ADMIN_ADJUSTMENT
+AC-WS-10
+Mở pack có thẻ LEGEND
+Nhận thêm event notification:push với type LEGEND_CARD
+AC-WS-11
+Client disconnect giữa chừng khi đang mở pack
+Kết quả vẫn được lưu vào DB, có thể lấy lại qua REST GET /history/:id
+AC-WS-12
+Emit pack:open_request với userPack của user khác
+Nhận error event với code PACK_FORBIDDEN
+AC-WS-13
+Admin khóa user đang online
+User nhận event account:suspended, sau đó bị disconnect khỏi WS
+9. Seed Data Cho Môi Trường Dev
+📌 Dev cần có dữ liệu seed trước khi test. Dưới đây là spec tối thiểu. BA/Team cung cấp file seed SQL hoặc Prisma seed script (seed.ts) trước ngày bắt đầu sprint.
+9.1 Cards (Tối Thiểu)
+name
+rarity
+overall
+position
+sell_price
+Mục đích test
+L. Messi
+LEGEND
+99
+CAM
+500
+Test LEGEND notification
+C. Ronaldo
+EPIC
+91
+ST
+350
+Test EPIC card
+K. Mbappe
+LEGEND
+97
+ST
+450
+Test nhiều LEGEND
+L. Modric
+RARE
+88
+CM
+150
+Test RARE card
+T. Alexander-Arnold
+COMMON
+84
+RB
+30
+Test COMMON card
+9.2 Pack Definitions (Tối Thiểu)
+name
+price
+card_count
+is_active
+Mục đích test
+Gold Pack
+100
+5
+true
+Pack chính để test luồng mua/mở
+Silver Pack
+50
+3
+true
+Test pack giá thấp hơn
+Inactive Pack
+200
+10
+false
+Test is_active=false không hiển thị
+Pack card pool: Gold Pack nên có đủ 4 rarity (COMMON weight=60, RARE weight=25, EPIC weight=12, LEGEND weight=3). Silver Pack tương tự tỉ lệ thấp hơn.
+9.3 Admin Account (Bắt Buộc)
+Seed ít nhất 1 tài khoản admin:
+{ email: "admin@packopener.dev", password: "Admin@2026!", role: "ADMIN", username: "SuperAdmin", balance: 99999 }
+Mật khẩu phải được hash bcrypt trước khi insert vào DB.
+10. Changelog
+Phiên bản
+Ngày
+Thay đổi
+v1.0
+2026-04-10
+Phiên bản draft ban đầu, 11 REST endpoints cơ bản, không có WebSocket.
+v2.0
+2026-04-12
+Bổ sung 10 REST endpoints còn thiếu. Thêm request/response schema chi tiết, bảng tham số, BR-13 → BR-18, AC-05 → AC-22, data dictionary đầy đủ 8 bảng.
+v2.1
+2026-04-12
+Bổ sung WebSocket Contract (Section 6): 8 events, luồng 17 bước, bảng mã lỗi WS, BR-WS-01 → BR-WS-07, AC-WS-01 → AC-WS-10.
+v2.2 (Rev)
+2026-04-13
+Sửa pack_opening_results từ quan hệ 1-1 thành 1-N (thêm cột position_in_pack). Làm rõ weighted random. Bổ sung BR-19, BR-20 (route conflict fix). Thêm Section 9 Seed Data. Cảnh báo NestJS route ordering.
+v2.3
+2026-04-13
+Thêm Module Admin API (Section 4.8): 18 endpoints quản lý User/Pack/Card/Pool/Stats/Transactions. Cập nhật Data Model: bảng users thêm role/is_active/deleted_at; bảng transactions thêm type ADMIN_ADJUSTMENT. Bổ sung BR-ADM-01 → BR-ADM-10, BR-WS-08, AC-ADM-01 → AC-ADM-13, AC-WS-03 + AC-WS-09 → AC-WS-13. Thêm Section 9.3 Admin seed account. Cập nhật auth/login response 403 khi account bị khóa.
+v2.4
+2026-04-13
+Refactor Data Model inventory: bổ sung bảng inventory_items (Section 2.8) — track từng instance thẻ (Option A). Đánh số lại bảng transactions thành Section 2.9. Cập nhật luồng mở pack (bước 5): INSERT inventory_items + UPSERT inventory song song. Cập nhật luồng bán thẻ (BR-10): set status=SOLD trສn inventory_items trước khi decrement inventory. Cập nhật mô tả Section 2.7 inventory. Hỗ trợ mở rộng market và đập thẻ về sau.

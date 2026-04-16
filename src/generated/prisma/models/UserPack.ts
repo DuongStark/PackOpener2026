@@ -28,7 +28,7 @@ export type UserPackMinAggregateOutputType = {
   id: string | null
   userId: string | null
   packId: string | null
-  status: string | null
+  status: $Enums.PackStatus | null
   purchasedAt: Date | null
   openedAt: Date | null
 }
@@ -37,7 +37,7 @@ export type UserPackMaxAggregateOutputType = {
   id: string | null
   userId: string | null
   packId: string | null
-  status: string | null
+  status: $Enums.PackStatus | null
   purchasedAt: Date | null
   openedAt: Date | null
 }
@@ -157,7 +157,7 @@ export type UserPackGroupByOutputType = {
   id: string
   userId: string
   packId: string
-  status: string
+  status: $Enums.PackStatus
   purchasedAt: Date
   openedAt: Date | null
   _count: UserPackCountAggregateOutputType | null
@@ -187,7 +187,7 @@ export type UserPackWhereInput = {
   id?: Prisma.UuidFilter<"UserPack"> | string
   userId?: Prisma.UuidFilter<"UserPack"> | string
   packId?: Prisma.UuidFilter<"UserPack"> | string
-  status?: Prisma.StringFilter<"UserPack"> | string
+  status?: Prisma.EnumPackStatusFilter<"UserPack"> | $Enums.PackStatus
   purchasedAt?: Prisma.DateTimeFilter<"UserPack"> | Date | string
   openedAt?: Prisma.DateTimeNullableFilter<"UserPack"> | Date | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -214,7 +214,7 @@ export type UserPackWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.UserPackWhereInput | Prisma.UserPackWhereInput[]
   userId?: Prisma.UuidFilter<"UserPack"> | string
   packId?: Prisma.UuidFilter<"UserPack"> | string
-  status?: Prisma.StringFilter<"UserPack"> | string
+  status?: Prisma.EnumPackStatusFilter<"UserPack"> | $Enums.PackStatus
   purchasedAt?: Prisma.DateTimeFilter<"UserPack"> | Date | string
   openedAt?: Prisma.DateTimeNullableFilter<"UserPack"> | Date | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -241,14 +241,14 @@ export type UserPackScalarWhereWithAggregatesInput = {
   id?: Prisma.UuidWithAggregatesFilter<"UserPack"> | string
   userId?: Prisma.UuidWithAggregatesFilter<"UserPack"> | string
   packId?: Prisma.UuidWithAggregatesFilter<"UserPack"> | string
-  status?: Prisma.StringWithAggregatesFilter<"UserPack"> | string
+  status?: Prisma.EnumPackStatusWithAggregatesFilter<"UserPack"> | $Enums.PackStatus
   purchasedAt?: Prisma.DateTimeWithAggregatesFilter<"UserPack"> | Date | string
   openedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"UserPack"> | Date | string | null
 }
 
 export type UserPackCreateInput = {
   id?: string
-  status?: string
+  status?: $Enums.PackStatus
   purchasedAt?: Date | string
   openedAt?: Date | string | null
   user: Prisma.UserCreateNestedOneWithoutUserPacksInput
@@ -260,7 +260,7 @@ export type UserPackUncheckedCreateInput = {
   id?: string
   userId: string
   packId: string
-  status?: string
+  status?: $Enums.PackStatus
   purchasedAt?: Date | string
   openedAt?: Date | string | null
   packOpeningResults?: Prisma.PackOpeningResultUncheckedCreateNestedManyWithoutUserPackInput
@@ -268,7 +268,7 @@ export type UserPackUncheckedCreateInput = {
 
 export type UserPackUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
   purchasedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   user?: Prisma.UserUpdateOneRequiredWithoutUserPacksNestedInput
@@ -280,7 +280,7 @@ export type UserPackUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   packId?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
   purchasedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   packOpeningResults?: Prisma.PackOpeningResultUncheckedUpdateManyWithoutUserPackNestedInput
@@ -290,14 +290,14 @@ export type UserPackCreateManyInput = {
   id?: string
   userId: string
   packId: string
-  status?: string
+  status?: $Enums.PackStatus
   purchasedAt?: Date | string
   openedAt?: Date | string | null
 }
 
 export type UserPackUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
   purchasedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -306,7 +306,7 @@ export type UserPackUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   packId?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
   purchasedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -437,6 +437,10 @@ export type UserPackUncheckedUpdateManyWithoutPackNestedInput = {
   deleteMany?: Prisma.UserPackScalarWhereInput | Prisma.UserPackScalarWhereInput[]
 }
 
+export type EnumPackStatusFieldUpdateOperationsInput = {
+  set?: $Enums.PackStatus
+}
+
 export type UserPackCreateNestedOneWithoutPackOpeningResultsInput = {
   create?: Prisma.XOR<Prisma.UserPackCreateWithoutPackOpeningResultsInput, Prisma.UserPackUncheckedCreateWithoutPackOpeningResultsInput>
   connectOrCreate?: Prisma.UserPackCreateOrConnectWithoutPackOpeningResultsInput
@@ -453,7 +457,7 @@ export type UserPackUpdateOneRequiredWithoutPackOpeningResultsNestedInput = {
 
 export type UserPackCreateWithoutUserInput = {
   id?: string
-  status?: string
+  status?: $Enums.PackStatus
   purchasedAt?: Date | string
   openedAt?: Date | string | null
   pack: Prisma.PackDefinitionCreateNestedOneWithoutUserPacksInput
@@ -463,7 +467,7 @@ export type UserPackCreateWithoutUserInput = {
 export type UserPackUncheckedCreateWithoutUserInput = {
   id?: string
   packId: string
-  status?: string
+  status?: $Enums.PackStatus
   purchasedAt?: Date | string
   openedAt?: Date | string | null
   packOpeningResults?: Prisma.PackOpeningResultUncheckedCreateNestedManyWithoutUserPackInput
@@ -502,14 +506,14 @@ export type UserPackScalarWhereInput = {
   id?: Prisma.UuidFilter<"UserPack"> | string
   userId?: Prisma.UuidFilter<"UserPack"> | string
   packId?: Prisma.UuidFilter<"UserPack"> | string
-  status?: Prisma.StringFilter<"UserPack"> | string
+  status?: Prisma.EnumPackStatusFilter<"UserPack"> | $Enums.PackStatus
   purchasedAt?: Prisma.DateTimeFilter<"UserPack"> | Date | string
   openedAt?: Prisma.DateTimeNullableFilter<"UserPack"> | Date | string | null
 }
 
 export type UserPackCreateWithoutPackInput = {
   id?: string
-  status?: string
+  status?: $Enums.PackStatus
   purchasedAt?: Date | string
   openedAt?: Date | string | null
   user: Prisma.UserCreateNestedOneWithoutUserPacksInput
@@ -519,7 +523,7 @@ export type UserPackCreateWithoutPackInput = {
 export type UserPackUncheckedCreateWithoutPackInput = {
   id?: string
   userId: string
-  status?: string
+  status?: $Enums.PackStatus
   purchasedAt?: Date | string
   openedAt?: Date | string | null
   packOpeningResults?: Prisma.PackOpeningResultUncheckedCreateNestedManyWithoutUserPackInput
@@ -553,7 +557,7 @@ export type UserPackUpdateManyWithWhereWithoutPackInput = {
 
 export type UserPackCreateWithoutPackOpeningResultsInput = {
   id?: string
-  status?: string
+  status?: $Enums.PackStatus
   purchasedAt?: Date | string
   openedAt?: Date | string | null
   user: Prisma.UserCreateNestedOneWithoutUserPacksInput
@@ -564,7 +568,7 @@ export type UserPackUncheckedCreateWithoutPackOpeningResultsInput = {
   id?: string
   userId: string
   packId: string
-  status?: string
+  status?: $Enums.PackStatus
   purchasedAt?: Date | string
   openedAt?: Date | string | null
 }
@@ -587,7 +591,7 @@ export type UserPackUpdateToOneWithWhereWithoutPackOpeningResultsInput = {
 
 export type UserPackUpdateWithoutPackOpeningResultsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
   purchasedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   user?: Prisma.UserUpdateOneRequiredWithoutUserPacksNestedInput
@@ -598,7 +602,7 @@ export type UserPackUncheckedUpdateWithoutPackOpeningResultsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   packId?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
   purchasedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -606,14 +610,14 @@ export type UserPackUncheckedUpdateWithoutPackOpeningResultsInput = {
 export type UserPackCreateManyUserInput = {
   id?: string
   packId: string
-  status?: string
+  status?: $Enums.PackStatus
   purchasedAt?: Date | string
   openedAt?: Date | string | null
 }
 
 export type UserPackUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
   purchasedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   pack?: Prisma.PackDefinitionUpdateOneRequiredWithoutUserPacksNestedInput
@@ -623,7 +627,7 @@ export type UserPackUpdateWithoutUserInput = {
 export type UserPackUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   packId?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
   purchasedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   packOpeningResults?: Prisma.PackOpeningResultUncheckedUpdateManyWithoutUserPackNestedInput
@@ -632,7 +636,7 @@ export type UserPackUncheckedUpdateWithoutUserInput = {
 export type UserPackUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   packId?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
   purchasedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -640,14 +644,14 @@ export type UserPackUncheckedUpdateManyWithoutUserInput = {
 export type UserPackCreateManyPackInput = {
   id?: string
   userId: string
-  status?: string
+  status?: $Enums.PackStatus
   purchasedAt?: Date | string
   openedAt?: Date | string | null
 }
 
 export type UserPackUpdateWithoutPackInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
   purchasedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   user?: Prisma.UserUpdateOneRequiredWithoutUserPacksNestedInput
@@ -657,7 +661,7 @@ export type UserPackUpdateWithoutPackInput = {
 export type UserPackUncheckedUpdateWithoutPackInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
   purchasedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   packOpeningResults?: Prisma.PackOpeningResultUncheckedUpdateManyWithoutUserPackNestedInput
@@ -666,7 +670,7 @@ export type UserPackUncheckedUpdateWithoutPackInput = {
 export type UserPackUncheckedUpdateManyWithoutPackInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
   purchasedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -773,7 +777,7 @@ export type $UserPackPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     id: string
     userId: string
     packId: string
-    status: string
+    status: $Enums.PackStatus
     purchasedAt: Date
     openedAt: Date | null
   }, ExtArgs["result"]["userPack"]>
@@ -1205,7 +1209,7 @@ export interface UserPackFieldRefs {
   readonly id: Prisma.FieldRef<"UserPack", 'String'>
   readonly userId: Prisma.FieldRef<"UserPack", 'String'>
   readonly packId: Prisma.FieldRef<"UserPack", 'String'>
-  readonly status: Prisma.FieldRef<"UserPack", 'String'>
+  readonly status: Prisma.FieldRef<"UserPack", 'PackStatus'>
   readonly purchasedAt: Prisma.FieldRef<"UserPack", 'DateTime'>
   readonly openedAt: Prisma.FieldRef<"UserPack", 'DateTime'>
 }

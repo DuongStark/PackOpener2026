@@ -1,10 +1,16 @@
 import 'dotenv/config';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { randomUUID } from 'node:crypto';
 
 import { PrismaPg } from '@prisma/adapter-pg';
 import { parse } from 'csv-parse/sync';
-import { Position, PrismaClient, Rarity } from '../src/generated/prisma/client';
+import {
+  Position,
+  Prisma,
+  PrismaClient,
+  Rarity,
+} from '../src/generated/prisma/client';
 
 const databaseUrl = process.env.DATABASE_URL;
 
@@ -55,6 +61,116 @@ function toIntOrNull(val: string | undefined): number | null {
   return Number.isNaN(n) ? null : n;
 }
 
+type SeedCard = {
+  id: string;
+  sofifaId: number;
+  name: string;
+  overall: number;
+  rarity: Rarity;
+  position: Position;
+  club: string | null;
+  nation: string | null;
+  imageUrl: string | null;
+  sellPrice: number;
+  pace: number | null;
+  shooting: number | null;
+  passing: number | null;
+  dribbling: number | null;
+  defending: number | null;
+  physical: number | null;
+};
+
+function normalizeRow(row: Record<string, string>, rowIndex: number): SeedCard {
+  const sofifaId = Number.parseInt(row.player_id, 10);
+  const overall = Number.parseInt(row.overall, 10);
+  const valueEur = Number.parseFloat(row.value_eur || '0') || 0;
+
+  if (Number.isNaN(sofifaId) || Number.isNaN(overall)) {
+    throw new Error(
+      `Invalid numeric field at row index ${rowIndex}: player_id=${row.player_id}, overall=${row.overall}`,
+    );
+  }
+
+  return {
+    id: randomUUID(),
+    sofifaId,
+    name: row.short_name,
+    overall,
+    rarity: mapRarity(overall),
+    position: mapPosition(row.player_positions),
+    club: row.club_name || null,
+    nation: row.nationality_name || null,
+    imageUrl: row.player_face_url || null,
+    sellPrice: calcSellPrice(valueEur),
+    pace: toIntOrNull(row.pace),
+    shooting: toIntOrNull(row.shooting),
+    passing: toIntOrNull(row.passing),
+    dribbling: toIntOrNull(row.dribbling),
+    defending: toIntOrNull(row.defending),
+    physical: toIntOrNull(row.physic),
+  };
+}
+
+async function upsertCardsBatch(batch: SeedCard[]): Promise<void> {
+  const values = batch.map((card) => {
+    return Prisma.sql`(
+      ${card.id}::uuid,
+      ${card.sofifaId},
+      ${card.name},
+      ${card.overall},
+      ${card.rarity}::"Rarity",
+      ${card.position}::"Position",
+      ${card.club},
+      ${card.nation},
+      ${card.imageUrl},
+      ${card.sellPrice},
+      ${card.pace},
+      ${card.shooting},
+      ${card.passing},
+      ${card.dribbling},
+      ${card.defending},
+      ${card.physical}
+    )`;
+  });
+
+  await prisma.$executeRaw`
+    INSERT INTO "cards" (
+      "id",
+      "sofifa_id",
+      "name",
+      "overall",
+      "rarity",
+      "position",
+      "club",
+      "nation",
+      "image_url",
+      "sell_price",
+      "pace",
+      "shooting",
+      "passing",
+      "dribbling",
+      "defending",
+      "physical"
+    )
+    VALUES ${Prisma.join(values)}
+    ON CONFLICT ("sofifa_id") DO UPDATE SET
+      "name" = EXCLUDED."name",
+      "overall" = EXCLUDED."overall",
+      "rarity" = EXCLUDED."rarity",
+      "position" = EXCLUDED."position",
+      "club" = EXCLUDED."club",
+      "nation" = EXCLUDED."nation",
+      "image_url" = EXCLUDED."image_url",
+      "sell_price" = EXCLUDED."sell_price",
+      "pace" = EXCLUDED."pace",
+      "shooting" = EXCLUDED."shooting",
+      "passing" = EXCLUDED."passing",
+      "dribbling" = EXCLUDED."dribbling",
+      "defending" = EXCLUDED."defending",
+      "physical" = EXCLUDED."physical"
+  `;
+}
+
 async function main() {
   const csvPath = path.resolve(process.cwd(), 'docs', 'FC26_20250921.csv');
   const raw = fs.readFileSync(csvPath, 'utf8');
@@ -65,65 +181,25 @@ async function main() {
     bom: true,
   }) as Record<string, string>[];
 
-  console.log(`[seed] Loaded ${rows.length} rows from ${csvPath}`);
+  console.log(`[seed] Loaded ${rows.length} raw rows from ${csvPath}`);
 
-  const BATCH_SIZE = 500;
+  const normalizedBySofifa = new Map<number, SeedCard>();
+  rows.forEach((row, idx) => {
+    const card = normalizeRow(row, idx);
+    normalizedBySofifa.set(card.sofifaId, card);
+  });
 
-  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-    const batch = rows.slice(i, i + BATCH_SIZE);
+  const cards = [...normalizedBySofifa.values()];
+  console.log(`[seed] Normalized ${cards.length} unique cards`);
 
-    for (const row of batch) {
-      const sofifaId = Number.parseInt(row.player_id, 10);
-      const overall = Number.parseInt(row.overall, 10);
-      const valueEur = Number.parseFloat(row.value_eur || '0') || 0;
+  // 16 params/row, keep under Postgres ~65535 parameter cap with margin.
+  const BATCH_SIZE = 2000;
 
-      if (Number.isNaN(sofifaId) || Number.isNaN(overall)) {
-        throw new Error(
-          `Invalid numeric field at row index ${i}: player_id=${row.player_id}, overall=${row.overall}`,
-        );
-      }
+  for (let i = 0; i < cards.length; i += BATCH_SIZE) {
+    const batch = cards.slice(i, i + BATCH_SIZE);
+    await upsertCardsBatch(batch);
 
-      await prisma.cards.upsert({
-        where: { sofifaId },
-        update: {
-          name: row.short_name,
-          overall,
-          rarity: mapRarity(overall),
-          position: mapPosition(row.player_positions),
-          club: row.club_name || null,
-          nation: row.nationality_name || null,
-          imageUrl: row.player_face_url || null,
-          sellPrice: calcSellPrice(valueEur),
-          pace: toIntOrNull(row.pace),
-          shooting: toIntOrNull(row.shooting),
-          passing: toIntOrNull(row.passing),
-          dribbling: toIntOrNull(row.dribbling),
-          defending: toIntOrNull(row.defending),
-          physical: toIntOrNull(row.physic),
-        },
-        create: {
-          sofifaId,
-          name: row.short_name,
-          overall,
-          rarity: mapRarity(overall),
-          position: mapPosition(row.player_positions),
-          club: row.club_name || null,
-          nation: row.nationality_name || null,
-          imageUrl: row.player_face_url || null,
-          sellPrice: calcSellPrice(valueEur),
-          pace: toIntOrNull(row.pace),
-          shooting: toIntOrNull(row.shooting),
-          passing: toIntOrNull(row.passing),
-          dribbling: toIntOrNull(row.dribbling),
-          defending: toIntOrNull(row.defending),
-          physical: toIntOrNull(row.physic),
-        },
-      });
-    }
-
-    console.log(
-      `[seed] Upserted ${Math.min(i + BATCH_SIZE, rows.length)}/${rows.length}`,
-    );
+    console.log(`[seed] Upserted ${Math.min(i + BATCH_SIZE, cards.length)}/${cards.length}`);
   }
 
   const total = await prisma.cards.count();

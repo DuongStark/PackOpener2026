@@ -1,10 +1,12 @@
-import { IsEmail, IsString, Matches, MaxLength, MinLength } from "class-validator";
+import { IsDefined, IsEmail, IsNotEmpty, IsString, Matches, MaxLength, MinLength } from "class-validator";
 
 export class CreateAuthDto {
     @IsEmail()
+    @IsDefined({ message: 'Email is required' })
     email!: string;
 
     @IsString()
+    @IsDefined({ message: 'Password is required' })
     @MinLength(6)
     password!: string;
 

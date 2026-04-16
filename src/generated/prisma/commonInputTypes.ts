@@ -280,6 +280,23 @@ export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedIntNullableFilter<$PrismaModel>
 }
 
+export type EnumPackStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.PackStatus | Prisma.EnumPackStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PackStatus[] | Prisma.ListEnumPackStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PackStatus[] | Prisma.ListEnumPackStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPackStatusFilter<$PrismaModel> | $Enums.PackStatus
+}
+
+export type EnumPackStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PackStatus | Prisma.EnumPackStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PackStatus[] | Prisma.ListEnumPackStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PackStatus[] | Prisma.ListEnumPackStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPackStatusWithAggregatesFilter<$PrismaModel> | $Enums.PackStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPackStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPackStatusFilter<$PrismaModel>
+}
+
 export type JsonFilter<$PrismaModel = never> =
 | Prisma.PatchUndefined<
     Prisma.Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
@@ -667,6 +684,23 @@ export type NestedFloatNullableFilter<$PrismaModel = never> = {
   gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   not?: Prisma.NestedFloatNullableFilter<$PrismaModel> | number | null
+}
+
+export type NestedEnumPackStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.PackStatus | Prisma.EnumPackStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PackStatus[] | Prisma.ListEnumPackStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PackStatus[] | Prisma.ListEnumPackStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPackStatusFilter<$PrismaModel> | $Enums.PackStatus
+}
+
+export type NestedEnumPackStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PackStatus | Prisma.EnumPackStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PackStatus[] | Prisma.ListEnumPackStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PackStatus[] | Prisma.ListEnumPackStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPackStatusWithAggregatesFilter<$PrismaModel> | $Enums.PackStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPackStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPackStatusFilter<$PrismaModel>
 }
 
 export type NestedJsonFilter<$PrismaModel = never> =

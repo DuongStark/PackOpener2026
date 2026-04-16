@@ -68,3 +68,11 @@ export const Type = {
 } as const
 
 export type Type = (typeof Type)[keyof typeof Type]
+
+
+export const PackStatus = {
+  PENDING: 'PENDING',
+  OPENED: 'OPENED'
+} as const
+
+export type PackStatus = (typeof PackStatus)[keyof typeof PackStatus]

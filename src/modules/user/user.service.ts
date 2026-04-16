@@ -1,10 +1,10 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { Prisma, Role, Type, User } from '../../generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../core/database/prisma.service.js';
@@ -129,5 +129,39 @@ export class UserService {
 
       throw error;
     }
+  }
+
+  async deductBalance(
+    userId: string,
+    amount: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<User> {
+    const user = await tx.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Not found user with id ${userId}`);
+    }
+
+    if (user.balance < amount) {
+      throw new BadRequestException({
+        statusCode: 402,
+        message: 'insufficient balance',
+        required: amount,
+        current: user.balance,
+      });
+    }
+
+    const updatedUser = await tx.user.update({
+      where: { id: userId },
+      data: {
+        balance: {
+          decrement: amount,
+        },
+      },
+    });
+
+    return updatedUser;
   }
 }
