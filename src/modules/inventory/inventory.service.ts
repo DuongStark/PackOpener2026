@@ -1,26 +1,75 @@
 import { Injectable } from '@nestjs/common';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
+import { PrismaService } from '../../core/database/prisma.service.js';
+import { GetInventoryDto } from './dto/get-inventory.dto.js';
+import { PaginatedOutput } from '../../common/constants/global.dto.js';
 
 @Injectable()
 export class InventoryService {
-  create(createInventoryDto: CreateInventoryDto) {
-    return 'This action adds a new inventory';
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
-    return `This action returns all inventory`;
-  }
+  async getInventory(
+    userId: string,
+    query: GetInventoryDto,
+  ): Promise<PaginatedOutput> {
+    const {
+      rarity,
+      position,
+      search,
+      sortBy = 'desc',
+      sortOrder,
+      page = 1,
+      limit = 20,
+    } = query;
+    const skip = (page - 1) * limit;
 
-  findOne(id: number) {
-    return `This action returns a #${id} inventory`;
-  }
+    const where: any = {
+      ...(rarity && { rarity }),
+      ...(position && { position }),
+      ...(search && {
+        name: {
+          contains: search,
+          mode: 'insensitive',
+        },
+      }),
+    };
 
-  update(id: number, updateInventoryDto: UpdateInventoryDto) {
-    return `This action updates a #${id} inventory`;
-  }
+    const [data, total] = await Promise.all([
+      this.prisma.inventory.findMany({
+        where: {
+          userId,
+          card: where,
+        },
+        orderBy: {
+          card: {
+            [sortBy]: sortOrder,
+          },
+        },
+        skip,
+        take: limit,
+        include: {
+          card: true,
+        },
 
-  remove(id: number) {
-    return `This action removes a #${id} inventory`;
+      }),
+      this.prisma.inventory.count({
+        where: {
+          userId,
+        },
+      }),
+    ]);
+
+    const formattedData = data.map((item) => ({
+      ...item.card,
+      quantity: item.quantity,
+    }));
+
+    return {
+      data: formattedData,
+      total,
+      page,
+      limit,
+    };
   }
 }
