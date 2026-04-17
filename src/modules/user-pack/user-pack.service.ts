@@ -3,12 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PackService } from '../modules/pack/pack.service.js';
-import { PrismaService } from '../core/database/prisma.service.js';
-import { UserService } from '../modules/user/user.service.js';
-import { PackStatus, Type } from '../generated/prisma/enums.js';
-import { TransactionService } from '../modules/transaction/transaction.service.js';
-import { PaginatedOutput } from '../common/constants/global.dto.js';
+import { PackService } from '../pack/pack.service.js';
+import { PrismaService } from '../../core/database/prisma.service.js';
+import { UserService } from '../user/user.service.js';
+import { PackStatus, Type } from '../../generated/prisma/enums.js';
+import { TransactionService } from '../transaction/transaction.service.js';
+import { PaginatedOutput } from '../../common/constants/global.dto.js';
 
 interface buyPackResult {
   userPackId: string;
@@ -98,14 +98,14 @@ export class UserPackService {
       where: { id },
       include: {
         pack: {
-            include: {
-                packCardPools: {
-                    include: {
-                        card: true,
-                    },
-                },
-            }
-        }
+          include: {
+            packCardPools: {
+              include: {
+                card: true,
+              },
+            },
+          },
+        },
       },
     });
 

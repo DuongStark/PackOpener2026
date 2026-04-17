@@ -7,9 +7,9 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard.js';
 import { UserPackService } from './user-pack.service.js';
-import { PaginatedOutput } from '../common/constants/global.dto.js';
+import { PaginatedOutput } from '../../common/constants/global.dto.js';
 
 interface buyPackResult {
   userPackId: string;
@@ -32,7 +32,11 @@ export class UserPackController {
   ): Promise<PaginatedOutput> {
     const pageNumber = parseInt(page);
     const limitNumber = parseInt(limit);
-    return this.userPackService.getUserPacks(req.user.id, pageNumber, limitNumber);
+    return this.userPackService.getUserPacks(
+      req.user.id,
+      pageNumber,
+      limitNumber,
+    );
   }
 
   @Get('/user-packs/:id')
