@@ -15,4 +15,10 @@ export class InventoryController {
     return this.inventoryService.getInventory(req.user.id, query);
   }
 
+  @Get('/summary')
+  @UseGuards(JwtAuthGuard)
+  getInventorySummary(@Req() req) {
+    return this.inventoryService.getInventorySummary(req.user.id);
+  }
+
 }

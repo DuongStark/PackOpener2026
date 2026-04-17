@@ -51,7 +51,6 @@ export class InventoryService {
         include: {
           card: true,
         },
-
       }),
       this.prisma.inventory.count({
         where: {
@@ -70,6 +69,49 @@ export class InventoryService {
       total,
       page,
       limit,
+    };
+  }
+
+  async getInventorySummary(userId: string) {
+    const inventoryItems = await this.prisma.inventory.findMany({
+      where: { userId },
+      select: {
+        quantity: true,
+        card: {
+          select: { rarity: true },
+        },
+      },
+    });
+
+    const totalCards = inventoryItems.reduce(
+      (sum, item) => sum + item.quantity,
+      0,
+    );
+    const uniqueCards = inventoryItems.length;
+
+    const byRarity = {
+      BRONZE_COMMON: 0,
+      BRONZE_RARE: 0,
+      SILVER_COMMON: 0,
+      SILVER_RARE: 0,
+      GOLD_COMMON: 0,
+      GOLD_RARE: 0,
+      GOLD_EPIC: 0,
+      DIAMOND_COMMON: 0,
+      DIAMOND_RARE: 0,
+    };
+
+    inventoryItems.forEach((item) => {
+      const rarity = item.card.rarity;
+      if (byRarity[rarity] !== undefined) {
+        byRarity[rarity] += item.quantity;
+      }
+    });
+
+    return {
+      totalCards,
+      uniqueCards,
+      byRarity,
     };
   }
 }
