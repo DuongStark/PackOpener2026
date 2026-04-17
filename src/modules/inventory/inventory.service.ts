@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { PrismaService } from '../../core/database/prisma.service.js';
@@ -113,5 +113,28 @@ export class InventoryService {
       uniqueCards,
       byRarity,
     };
+  }
+
+  async getInventoryItemById(cardId: string, userId: string) {
+    const item = await this.prisma.inventory.findFirst({
+      where: {
+        userId,
+        cardId,
+      },
+      include: {
+        card: true,
+      },
+    });
+
+    if (!item) {
+      throw new NotFoundException('Card not found in inventory');
+    }
+
+    const data = {
+      ...item.card,
+      quantity: item.quantity,
+    };
+    
+    return data;
   }
 }
