@@ -8,6 +8,7 @@ import { PrismaService } from '../core/database/prisma.service.js';
 import { UserService } from '../modules/user/user.service.js';
 import { PackStatus, Type } from '../generated/prisma/enums.js';
 import { TransactionService } from '../modules/transaction/transaction.service.js';
+import { PaginatedOutput } from '../common/constants/global.dto.js';
 
 interface buyPackResult {
   userPackId: string;
@@ -15,13 +16,6 @@ interface buyPackResult {
   price: number;
   newBalance: number;
   status: string;
-}
-
-export interface UserPackOutput {
-  data: any[];
-  total: number;
-  page: number;
-  limit: number;
 }
 
 @Injectable()
@@ -72,7 +66,7 @@ export class UserPackService {
     userId: string,
     page: number,
     limit: number,
-  ): Promise<UserPackOutput> {
+  ): Promise<PaginatedOutput> {
     const skip = (page - 1) * limit;
 
     const total = await this.prisma.userPack.count({

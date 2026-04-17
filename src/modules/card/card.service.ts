@@ -1,26 +1,54 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
+import { PrismaService } from '../../core/database/prisma.service.js';
+import { getCardDto } from './dto/get-card.dto.js';
+import { PaginatedOutput } from '../../common/constants/global.dto.js';
 
 @Injectable()
 export class CardService {
-  create(createCardDto: CreateCardDto) {
-    return 'This action adds a new card';
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
-    return `This action returns all card`;
-  }
+  async getCards(query: getCardDto): Promise<PaginatedOutput> {
+    const {
+      rarity,
+      position,
+      search,
+      sortBy = 'desc',
+      sortOrder,
+      page = 1,
+      limit = 20,
+    } = query;
+    const skip = (page - 1) * limit;
 
-  findOne(id: number) {
-    return `This action returns a #${id} card`;
-  }
+    const where: any = {
+      ...(rarity && { rarity }),
+      ...(position && { position }),
+      ...(search && {
+        name: {
+          contains: search,
+          mode: 'insensitive',
+        },
+      }),
+    };
 
-  update(id: number, updateCardDto: UpdateCardDto) {
-    return `This action updates a #${id} card`;
-  }
+    const [data, total] = await Promise.all([
+      this.prisma.cards.findMany({
+        where,
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        skip,
+        take: limit,
+      }),
+      this.prisma.cards.count({ where }),
+    ]);
 
-  remove(id: number) {
-    return `This action removes a #${id} card`;
+    return {
+        data,
+        total,
+        page,
+        limit,
+    }
   }
 }
