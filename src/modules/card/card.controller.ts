@@ -13,4 +13,9 @@ export class CardController {
   getCards(@Query() query: getCardDto): Promise<PaginatedOutput> {
     return this.cardService.getCards(query);
   }
+
+  @Get(':id')
+  getCardById(@Param('id') id: string) {
+    return this.cardService.getCardById(id);
+  }
 }

@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
 import { PrismaService } from '../../core/database/prisma.service.js';
 import { getCardDto } from './dto/get-card.dto.js';
 import { PaginatedOutput } from '../../common/constants/global.dto.js';
+import { Cards } from '../../generated/prisma/client.js';
 
 @Injectable()
 export class CardService {
@@ -50,5 +51,17 @@ export class CardService {
         page,
         limit,
     }
+  }
+
+  async getCardById(id: string):Promise<Cards> {
+    const card = await this.prisma.cards.findUnique({
+      where: { id },
+    });
+
+    if (!card) {
+      throw new NotFoundException('Card not found');
+    }
+
+    return card;
   }
 }
