@@ -164,4 +164,17 @@ export class UserService {
 
     return updatedUser;
   }
+
+  async getUserBalance(userId: string): Promise<number> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { balance: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Not found user with id ${userId}`);
+    }
+
+    return user.balance;
+  }
 }

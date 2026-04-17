@@ -15,6 +15,7 @@ import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard.js';
 import { GetInventoryDto } from './dto/get-inventory.dto.js';
+import { SellCardDto } from './dto/sell-card.dto.js';
 
 @Controller('inventory')
 export class InventoryController {
@@ -36,5 +37,11 @@ export class InventoryController {
   @UseGuards(JwtAuthGuard)
   getInventoryItemById(@Param('id') cardId: string, @Req() req) {
     return this.inventoryService.getInventoryItemById(cardId, req.user.id);
+  }
+
+  @Post('/sell')
+  @UseGuards(JwtAuthGuard)
+  sellInventoryItem(@Body() body: SellCardDto, @Req() req) {
+    return this.inventoryService.sellInventoryItem(body, req.user.id);
   }
 }
