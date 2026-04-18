@@ -39,6 +39,13 @@ export class UserPackController {
     );
   }
 
+  @Get('/history')
+  @UseGuards(JwtAuthGuard)
+  async getUserPackHistory(
+    @Req() req, @Query() query): Promise<PaginatedOutput> {
+      return this.userPackService.findOpenedHistory(req.user.id, query);
+    }
+
   @Get('/user-packs/:id')
   @UseGuards(JwtAuthGuard)
   async getUserPackById(@Param('id') id: string, @Req() req) {

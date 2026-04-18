@@ -9,6 +9,7 @@ import { UserService } from '../user/user.service.js';
 import { PackStatus, Type } from '../../generated/prisma/enums.js';
 import { TransactionService } from '../transaction/transaction.service.js';
 import { PaginatedOutput } from '../../common/constants/global.dto.js';
+import { Pack } from '../pack/entities/pack.entity.js';
 
 interface buyPackResult {
   userPackId: string;
@@ -130,6 +131,59 @@ export class UserPackService {
       id: userPackData.id,
       status: userPackData.status,
       cards: userPackData.pack.packCardPools,
+    };
+  }
+
+  async findOpenedHistory(userId: string, query): Promise<PaginatedOutput> {
+    const { page = 1, limit = 20 } = query;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      this.prisma.userPack.findMany({
+        where: {
+          userId,
+          status: PackStatus.OPENED,
+        },
+        orderBy: { openedAt: 'desc' },
+        skip,
+        take: limit,
+        include: {
+          packOpeningResults: {
+            include: { card: true },
+          },
+          pack: true,
+        },
+      }),
+
+      this.prisma.userPack.count({
+        where: {
+          userId,
+          status: PackStatus.OPENED,
+        },
+      }),
+    ]);
+
+    const formattedData = data.map((item) => ({
+      UserPackId: item.id,
+      PackId: item.packId,
+      PackName: item.pack.name,
+      OpenedAt: item.openedAt,
+      Cards: item.packOpeningResults.map((result) => ({
+        id: result.card.id,
+        name: result.card.name,
+        rarity: result.card.rarity,
+        position: result.card.position,
+        overall: result.card.overall,
+        imageUrl: result.card.imageUrl,
+        sellPrice: result.card.sellPrice,
+      })),
+    }));
+
+    return {
+      data: formattedData,
+      total,
+      page,
+      limit,
     };
   }
 }
