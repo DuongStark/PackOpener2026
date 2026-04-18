@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+  Req,
+} from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
@@ -12,9 +23,21 @@ export class TransactionController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  async findAll(@Query() query: GetTransactionDto, @Req() req): Promise<PaginatedOutput> {
-    const result = await this.transactionService.findAllByUser(req.user.id, query);
+  async findAll(
+    @Query() query: GetTransactionDto,
+    @Req() req,
+  ): Promise<PaginatedOutput> {
+    const result = await this.transactionService.findAllByUser(
+      req.user.id,
+      query,
+    );
 
-    return {...result, page: query.page, limit: query.limit};
+    return { ...result, page: query.page, limit: query.limit };
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  findOne(@Param('id') id: string) {
+    return this.transactionService.findOne(id);
   }
 }

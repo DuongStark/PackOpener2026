@@ -57,4 +57,10 @@ export class TransactionService {
 
     return {data, total}
   }
+
+  async findOne(id: string): Promise<Transaction | null> {
+    return await this.prisma.transaction.findUnique({
+      where: { id },
+    });
+  }
 }
