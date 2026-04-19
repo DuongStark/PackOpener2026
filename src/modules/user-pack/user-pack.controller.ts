@@ -10,6 +10,8 @@ import {
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard.js';
 import { UserPackService } from './user-pack.service.js';
 import { PaginatedOutput } from '../../common/constants/global.dto.js';
+import { Status } from '../../generated/prisma/enums.js';
+import { getUserPacksDto } from './dto/get-userpack.dto.js';
 
 interface buyPackResult {
   userPackId: string;
@@ -27,25 +29,15 @@ export class UserPackController {
   @UseGuards(JwtAuthGuard)
   async getUserPacks(
     @Req() req,
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
+    @Query() query: getUserPacksDto,
   ): Promise<PaginatedOutput> {
-    const pageNumber = parseInt(page);
-    const limitNumber = parseInt(limit);
     return this.userPackService.getUserPacks(
       req.user.id,
-      pageNumber,
-      limitNumber,
+      query
     );
   }
 
-  @Get('/history')
-  @UseGuards(JwtAuthGuard)
-  async getUserPackHistory(
-    @Req() req, @Query() query): Promise<PaginatedOutput> {
-      return this.userPackService.findOpenedHistory(req.user.id, query);
-    }
-
+ 
   @Get('/user-packs/:id')
   @UseGuards(JwtAuthGuard)
   async getUserPackById(@Param('id') id: string, @Req() req) {

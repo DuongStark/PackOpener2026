@@ -6,10 +6,11 @@ import {
 import { PackService } from '../pack/pack.service.js';
 import { PrismaService } from '../../core/database/prisma.service.js';
 import { UserService } from '../user/user.service.js';
-import { PackStatus, Type } from '../../generated/prisma/enums.js';
+import { PackStatus, Status, Type } from '../../generated/prisma/enums.js';
 import { TransactionService } from '../transaction/transaction.service.js';
 import { PaginatedOutput } from '../../common/constants/global.dto.js';
 import { Pack } from '../pack/entities/pack.entity.js';
+import { getUserPacksDto } from './dto/get-userpack.dto.js';
 
 interface buyPackResult {
   userPackId: string;
@@ -17,6 +18,23 @@ interface buyPackResult {
   price: number;
   newBalance: number;
   status: string;
+}
+
+interface CardSnapshot {
+  name: string;
+  overall: number;
+  rarity: string;
+  position: string;
+  imageUrl: string;
+  sellPrice: number;
+  club?: string;
+  nation?: string;
+  pace?: number;
+  shooting?: number;
+  passing?: number;
+  dribbling?: number;
+  defending?: number;
+  physical?: number;
 }
 
 @Injectable()
@@ -65,125 +83,111 @@ export class UserPackService {
 
   async getUserPacks(
     userId: string,
-    page: number,
-    limit: number,
+    query: getUserPacksDto,
   ): Promise<PaginatedOutput> {
+    const { page = 1, limit = 20, status = PackStatus.PENDING, includeCards } = query;
     const skip = (page - 1) * limit;
-
-    const total = await this.prisma.userPack.count({
-      where: {
-        userId,
-      },
-    });
-
-    const userPacks = await this.prisma.userPack.findMany({
-      where: { userId },
-      skip: skip,
-      take: limit,
-      include: {
-        pack: true,
-      },
-    });
-
-    //format lai data cho giong api docs
-    const data = userPacks.map((up) => ({
-      ...up.pack, // Thông tin chung của Pack
-      instanceId: up.id,
-    }));
-
-    return { data, total, page, limit };
-  }
-
-  async getUserPackById(id: string, userId: string): Promise<any> {
-    const userPackData = await this.prisma.userPack.findUnique({
-      where: { id },
-      include: {
-        pack: {
-          include: {
-            packCardPools: {
-              include: {
-                card: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!userPackData) {
-      throw new NotFoundException('User pack not found');
-    }
-
-    if (userPackData.userId !== userId) {
-      throw new ForbiddenException('User pack not found');
-    }
-
-    if (userPackData.status === PackStatus.PENDING) {
-      return {
-        ...userPackData.pack,
-        id: userPackData.id,
-        status: userPackData.status,
-      };
-    }
-
-    return {
-      ...userPackData.pack,
-      id: userPackData.id,
-      status: userPackData.status,
-      cards: userPackData.pack.packCardPools,
+    const where = {
+      userId,
+      ...(status && { status }),
     };
-  }
 
-  async findOpenedHistory(userId: string, query): Promise<PaginatedOutput> {
-    const { page = 1, limit = 20 } = query;
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await Promise.all([
-      this.prisma.userPack.findMany({
-        where: {
-          userId,
-          status: PackStatus.OPENED,
-        },
-        orderBy: { openedAt: 'desc' },
-        skip,
-        take: limit,
-        include: {
-          packOpeningResults: {
-            include: { card: true },
-          },
-          pack: true,
-        },
+    const [total, data] = await Promise.all([
+      this.prisma.userPack.count({
+        where,
       }),
 
-      this.prisma.userPack.count({
-        where: {
-          userId,
-          status: PackStatus.OPENED,
+      this.prisma.userPack.findMany({
+        where,
+        orderBy: { purchasedAt: 'desc' },
+        skip: skip,
+        take: limit,
+        include: {
+          pack: true,
+          packOpeningResults: includeCards === true,
         },
       }),
     ]);
 
-    const formattedData = data.map((item) => ({
-      UserPackId: item.id,
-      PackId: item.packId,
-      PackName: item.pack.name,
-      OpenedAt: item.openedAt,
-      Cards: item.packOpeningResults.map((result) => ({
-        id: result.card.id,
-        name: result.card.name,
-        rarity: result.card.rarity,
-        position: result.card.position,
-        overall: result.card.overall,
-        imageUrl: result.card.imageUrl,
-        sellPrice: result.card.sellPrice,
-      })),
-    }));
+   const formattedData = data.map((item) =>
+    this.formatUserPack(item, includeCards),
+  );
 
+  return { data: formattedData, total, page, limit };
+    
+  }
+
+  private formatUserPack(item: any, includeCards?: boolean) {
+  const base = {
+    id: item.id,
+    packId: item.packId,
+    packName: item.pack.name,
+    status: item.status,
+    purchasedAt: item.purchasedAt,
+    ...(item.openedAt && { openedAt: item.openedAt }),
+  };
+
+  // Không includeCards hoặc pack chưa mở → trả base
+  if (!includeCards || item.status !== PackStatus.OPENED) return base;
+
+  // Pack đã mở + includeCards=true → kèm cards
+  const cards = item.packOpeningResults.map((r: any) => {
+    const snapshot = r.cardSnapshot as CardSnapshot;
     return {
-      data: formattedData,
-      total,
-      page,
-      limit,
+      name: snapshot.name,
+      rarity: snapshot.rarity,
+    };
+  });
+
+  return { ...base, cards };
+}
+
+  async getUserPackById(id: string, userId: string): Promise<any> {
+  const userPack = await this.prisma.userPack.findUnique({
+    where: { id },
+    include: {
+      pack: true,                    
+      packOpeningResults: true,    
+    },
+  });
+
+  if (!userPack) {
+    throw new NotFoundException('UserPack not found');
+  }
+
+  if (userPack.userId !== userId) {
+    throw new ForbiddenException('Forbidden');
+  }
+
+  // PENDING trả base
+  if (userPack.status === PackStatus.PENDING) {
+    return {
+      id: userPack.id,
+      packName: userPack.pack.name,
+      status: userPack.status,
+      purchasedAt: userPack.purchasedAt,
     };
   }
+
+  // OPENED trả kèm cards từ snapshot
+  return {
+    id: userPack.id,
+    packName: userPack.pack.name,
+    status: userPack.status,
+    purchasedAt: userPack.purchasedAt,
+    openedAt: userPack.openedAt,
+    cards: userPack.packOpeningResults.map((r: any) => {
+      const snapshot = r.cardSnapshot as CardSnapshot;
+      return {
+        cardId: r.cardId,
+        name: snapshot.name,
+        rarity: snapshot.rarity,
+        overall: snapshot.overall,
+        position: snapshot.position,
+        imageUrl: snapshot.imageUrl,
+        sellPrice: snapshot.sellPrice,
+      };
+    }),
+  };
+}
 }
