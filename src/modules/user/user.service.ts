@@ -10,10 +10,15 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../core/database/prisma.service.js';
 import { getAllUserDto } from './dto/get-all-user.dto.js';
 import { PaginatedOutput } from '../../common/constants/global.dto.js';
+import { UpdateUserByAdminDto } from './dto/update-user.dto.js';
+import { TransactionService } from '../transaction/transaction.service.js';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly transactionService: TransactionService,
+  ) {}
   async createUser(
     createUserDto: CreateUserDto,
   ): Promise<Omit<User, 'passwordHash'>> {
@@ -206,6 +211,16 @@ export class UserService {
         orderBy: { [sortBy]: order },
         skip: (page - 1) * limit,
         take: limit,
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          balance: true,
+          role: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       }),
     ]);
 
@@ -268,5 +283,57 @@ export class UserService {
         totalCoinEarned,
       },
     };
+  }
+
+  async updateUserByAdmin(
+    id: string,
+    body: UpdateUserByAdminDto,
+    adminId: string,
+  ): Promise<any> {
+    const { role, isActive, username, balance, description } = body;
+
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+
+    if (id === adminId) {
+      throw new BadRequestException('Cannot update your own admin account');
+    }
+
+    if (balance !== undefined && balance !== user.balance) {
+      await this.prisma.$transaction(async (tx) => {
+        
+        await tx.user.update({
+          where: { id },
+          data: { balance },
+        });
+
+        await this.transactionService.create(
+          {
+            userId: id,
+            type: Type.ADMIN_ADJUSTMENT,
+            amount: balance - user.balance,
+            balanceBefore: user.balance,
+            balanceAfter: balance,
+            description: description ?? 'Admin balance adjustment',
+          },
+          adminId,
+          tx,
+        );
+      });
+    }
+
+    
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: {
+        ...(username !== undefined && { username }),
+        ...(role !== undefined && { role }),
+        ...(isActive !== undefined && { isActive }),
+        
+      },
+    });
+
+    const { passwordHash, deletedAt, ...safeUser } = updatedUser;
+    return safeUser; 
   }
 }
