@@ -8,6 +8,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { Prisma, Role, Type, User } from '../../generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../core/database/prisma.service.js';
+import { getAllUserDto } from './dto/get-all-user.dto.js';
+import { PaginatedOutput } from '../../common/constants/global.dto.js';
 
 @Injectable()
 export class UserService {
@@ -176,5 +178,42 @@ export class UserService {
     }
 
     return user.balance;
+  }
+
+  //admin zone
+  async getAllUsers(query: getAllUserDto): Promise<PaginatedOutput> {
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      sortBy = 'createdAt',
+      order = 'desc',
+    } = query;
+
+    const where: Prisma.UserWhereInput = {
+      ...(search && {
+        OR: [
+          { email: { contains: search, mode: 'insensitive' } },
+          { username: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+    };
+
+    const [total, data] = await Promise.all([
+      this.prisma.user.count({ where }),
+      this.prisma.user.findMany({
+        where,
+        orderBy: { [sortBy]: order },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+    ]);
+
+    return {
+      total,
+      page,
+      limit,
+      data,
+    };
   }
 }
