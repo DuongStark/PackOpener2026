@@ -12,7 +12,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   getProfile(@Req() req) {
     
-    return this.userService.getUserById(req.user.id);
+    return this.userService.getPublicProfile(req.user.id);
   }
 
   @Patch('/me')

@@ -8,11 +8,11 @@ import { AdminTransactionsController } from './controllers/admin-transactions/ad
 import { UserModule } from '../user/user.module.js';
 import { CardModule } from '../card/card.module.js';
 import { TransactionModule } from '../transaction/transaction.module.js';
-import { PackModule } from '../pack/pack.module.js';
+import { UserPackModule } from '../user-pack/user-pack.module.js';
 
 
 @Module({
-  imports: [UserModule, CardModule, TransactionModule, PackModule],
+  imports: [UserModule, CardModule, TransactionModule, UserPackModule],
   controllers: [AdminUserController, AdminPackController, AdminCardController, AdminStatsController, AdminTransactionsController],
   providers: [AdminService]
 })

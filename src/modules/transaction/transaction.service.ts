@@ -41,7 +41,9 @@ export class TransactionService {
     };
 
     if (from && to && new Date(from) > new Date(to)) {
-      throw new Error('Invalid date range: "from" date must be before "to" date.');
+      throw new Error(
+        'Invalid date range: "from" date must be before "to" date.',
+      );
     }
 
     const data = await this.prisma.transaction.findMany({
@@ -53,9 +55,9 @@ export class TransactionService {
       take: limit,
     });
 
-    const total = await this.prisma.transaction.count({ where: {userId} });
+    const total = await this.prisma.transaction.count({ where: { userId } });
 
-    return {data, total}
+    return { data, total };
   }
 
   async findOne(id: string): Promise<Transaction | null> {
@@ -63,4 +65,6 @@ export class TransactionService {
       where: { id },
     });
   }
+
+ 
 }

@@ -72,7 +72,7 @@ export class UserService {
     return this.prisma.user.findUnique({ where: { email } });
   }
 
-  async getUserById(
+  async getPublicProfile(
     id: string,
   ): Promise<Omit<
     User,
@@ -214,6 +214,59 @@ export class UserService {
       page,
       limit,
       data,
+    };
+  }
+
+  async getUserById(id: string): Promise<any> {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const [
+      totalPacksBought,
+      totalPacksOpened,
+      totalCardOwned,
+      totalCoinSpent,
+      totalCoinEarned,
+    ] = await Promise.all([
+      this.prisma.userPack.count({ where: { userId: id } }),
+      this.prisma.userPack.count({ where: { userId: id, status: 'OPENED' } }),
+      this.prisma.inventory
+        .aggregate({
+          where: { userId: id },
+          _sum: { quantity: true },
+        })
+        .then((r) => r._sum.quantity ?? 0),
+      this.prisma.transaction
+        .aggregate({
+          where: { userId: id, amount: { lt: 0 } },
+          _sum: { amount: true },
+        })
+        .then((r) => Math.abs(r._sum.amount ?? 0)),
+      this.prisma.transaction
+        .aggregate({
+          where: { userId: id, amount: { gt: 0 } },
+          _sum: { amount: true },
+        })
+        .then((r) => r._sum.amount ?? 0),
+    ]);
+
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      balance: user.balance,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      stats: {
+        totalPacksBought,
+        totalPacksOpened,
+        totalCardOwned,
+        totalCoinSpent,
+        totalCoinEarned,
+      },
     };
   }
 }

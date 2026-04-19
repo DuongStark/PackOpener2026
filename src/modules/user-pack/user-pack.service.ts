@@ -61,7 +61,7 @@ export class UserPackService {
         const transaction = {
           userId,
           type: Type.BUY_PACK,
-          amount: price,
+          amount: -price,
           balanceBefore: data.balance + price,
           balanceAfter: data.balance,
           description: `Mua pack ${name}`,
@@ -85,7 +85,12 @@ export class UserPackService {
     userId: string,
     query: getUserPacksDto,
   ): Promise<PaginatedOutput> {
-    const { page = 1, limit = 20, status = PackStatus.PENDING, includeCards } = query;
+    const {
+      page = 1,
+      limit = 20,
+      status = PackStatus.PENDING,
+      includeCards,
+    } = query;
     const skip = (page - 1) * limit;
     const where = {
       userId,
@@ -109,85 +114,85 @@ export class UserPackService {
       }),
     ]);
 
-   const formattedData = data.map((item) =>
-    this.formatUserPack(item, includeCards),
-  );
+    const formattedData = data.map((item) =>
+      this.formatUserPack(item, includeCards),
+    );
 
-  return { data: formattedData, total, page, limit };
-    
+    return { data: formattedData, total, page, limit };
   }
 
   private formatUserPack(item: any, includeCards?: boolean) {
-  const base = {
-    id: item.id,
-    packId: item.packId,
-    packName: item.pack.name,
-    status: item.status,
-    purchasedAt: item.purchasedAt,
-    ...(item.openedAt && { openedAt: item.openedAt }),
-  };
-
-  // Không includeCards hoặc pack chưa mở → trả base
-  if (!includeCards || item.status !== PackStatus.OPENED) return base;
-
-  // Pack đã mở + includeCards=true → kèm cards
-  const cards = item.packOpeningResults.map((r: any) => {
-    const snapshot = r.cardSnapshot as CardSnapshot;
-    return {
-      name: snapshot.name,
-      rarity: snapshot.rarity,
+    const base = {
+      id: item.id,
+      packId: item.packId,
+      packName: item.pack.name,
+      status: item.status,
+      purchasedAt: item.purchasedAt,
+      ...(item.openedAt && { openedAt: item.openedAt }),
     };
-  });
 
-  return { ...base, cards };
-}
+    // Không includeCards hoặc pack chưa mở → trả base
+    if (!includeCards || item.status !== PackStatus.OPENED) return base;
+
+    // Pack đã mở + includeCards=true → kèm cards
+    const cards = item.packOpeningResults.map((r: any) => {
+      const snapshot = r.cardSnapshot as CardSnapshot;
+      return {
+        name: snapshot.name,
+        rarity: snapshot.rarity,
+      };
+    });
+
+    return { ...base, cards };
+  }
 
   async getUserPackById(id: string, userId: string): Promise<any> {
-  const userPack = await this.prisma.userPack.findUnique({
-    where: { id },
-    include: {
-      pack: true,                    
-      packOpeningResults: true,    
-    },
-  });
+    const userPack = await this.prisma.userPack.findUnique({
+      where: { id },
+      include: {
+        pack: true,
+        packOpeningResults: true,
+      },
+    });
 
-  if (!userPack) {
-    throw new NotFoundException('UserPack not found');
-  }
+    if (!userPack) {
+      throw new NotFoundException('UserPack not found');
+    }
 
-  if (userPack.userId !== userId) {
-    throw new ForbiddenException('Forbidden');
-  }
+    if (userPack.userId !== userId) {
+      throw new ForbiddenException('Forbidden');
+    }
 
-  // PENDING trả base
-  if (userPack.status === PackStatus.PENDING) {
+    // PENDING trả base
+    if (userPack.status === PackStatus.PENDING) {
+      return {
+        id: userPack.id,
+        packName: userPack.pack.name,
+        status: userPack.status,
+        purchasedAt: userPack.purchasedAt,
+      };
+    }
+
+    // OPENED trả kèm cards từ snapshot
     return {
       id: userPack.id,
       packName: userPack.pack.name,
       status: userPack.status,
       purchasedAt: userPack.purchasedAt,
+      openedAt: userPack.openedAt,
+      cards: userPack.packOpeningResults.map((r: any) => {
+        const snapshot = r.cardSnapshot as CardSnapshot;
+        return {
+          cardId: r.cardId,
+          name: snapshot.name,
+          rarity: snapshot.rarity,
+          overall: snapshot.overall,
+          position: snapshot.position,
+          imageUrl: snapshot.imageUrl,
+          sellPrice: snapshot.sellPrice,
+        };
+      }),
     };
   }
 
-  // OPENED trả kèm cards từ snapshot
-  return {
-    id: userPack.id,
-    packName: userPack.pack.name,
-    status: userPack.status,
-    purchasedAt: userPack.purchasedAt,
-    openedAt: userPack.openedAt,
-    cards: userPack.packOpeningResults.map((r: any) => {
-      const snapshot = r.cardSnapshot as CardSnapshot;
-      return {
-        cardId: r.cardId,
-        name: snapshot.name,
-        rarity: snapshot.rarity,
-        overall: snapshot.overall,
-        position: snapshot.position,
-        imageUrl: snapshot.imageUrl,
-        sellPrice: snapshot.sellPrice,
-      };
-    }),
-  };
-}
 }

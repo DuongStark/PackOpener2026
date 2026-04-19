@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { UserService } from '../../../user/user.service.js';
 import { Roles } from '../../../../common/decorators/roles.decorator.js';
 import { Role } from '../../../../generated/prisma/enums.js';
@@ -16,5 +16,11 @@ export class AdminUserController {
     getAllUsers(@Query() query) {
         return this.userService.getAllUsers(query);
     }
+
     
+    @Get(':id')
+    @UseGuards(JwtAuthGuard ,RolesGuard)
+    getUserById(@Param('id') id: string) {
+        return this.userService.getUserById(id);
+    }
 }
