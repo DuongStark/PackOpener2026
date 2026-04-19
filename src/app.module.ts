@@ -11,6 +11,7 @@ import { CardModule } from './modules/card/card.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { TransactionModule } from './modules/transaction/transaction.module';
 import { UserPackModule } from './modules/user-pack/user-pack.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UserPackModule } from './modules/user-pack/user-pack.module';
     InventoryModule,
     TransactionModule,
     UserPackModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
