@@ -1,6 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../core/database/prisma.service.js';
 import { CreatePackDto } from './dto/create-pack.dto.js';
+import { UpdatePackDto } from './dto/update-pack.dto.js';
 import { PackDefinition } from '../../generated/prisma/client.js';
 
 @Injectable()
@@ -104,6 +109,50 @@ export class PackService {
         cardCount: data.cardCount,
         imageUrl: data.imageUrl,
         isActive: data.isActive ?? false,
+      },
+    });
+  }
+
+  async updatePack(id: string, data: UpdatePackDto): Promise<PackDefinition> {
+    const pack = await this.prisma.packDefinition.findUnique({
+      where: { id },
+    });
+
+    if (!pack) {
+      throw new NotFoundException('Pack not found');
+    }
+
+    if (data.name && data.name !== pack.name) {
+      const existing = await this.prisma.packDefinition.findUnique({
+        where: { name: data.name },
+      });
+
+      if (existing) {
+        throw new BadRequestException(`Tên pack "${data.name}" đã tồn tại`);
+      }
+    }
+
+    if (data.cardCount !== undefined && data.cardCount !== pack.cardCount) {
+      const soldCount = await this.prisma.userPack.count({
+        where: { packId: id },
+      });
+
+      if (soldCount > 0) {
+        throw new BadRequestException(
+          'Cannot change cardCount after packs have been sold',
+        );
+      }
+    }
+
+    return this.prisma.packDefinition.update({
+      where: { id },
+      data: {
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        cardCount: data.cardCount,
+        imageUrl: data.imageUrl,
+        isActive: data.isActive,
       },
     });
   }
