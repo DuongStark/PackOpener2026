@@ -9,9 +9,10 @@ import { UserModule } from '../user/user.module.js';
 import { CardModule } from '../card/card.module.js';
 import { TransactionModule } from '../transaction/transaction.module.js';
 import { UserPackModule } from '../user-pack/user-pack.module.js';
+import { PackModule } from '../pack/pack.module.js';
 
 @Module({
-  imports: [UserModule, CardModule, TransactionModule, UserPackModule],
+  imports: [UserModule, CardModule, TransactionModule, UserPackModule, PackModule],
   controllers: [
     AdminUserController,
     AdminPackController,

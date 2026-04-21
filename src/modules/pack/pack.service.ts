@@ -1,5 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../core/database/prisma.service.js';
+import { CreatePackDto } from './dto/create-pack.dto.js';
+import { PackDefinition } from '../../generated/prisma/client.js';
 
 @Injectable()
 export class PackService {
@@ -84,5 +86,25 @@ export class PackService {
       throw new NotFoundException('Pack not found or inactive');
     }
     return [pack.price, pack.name];
+  }
+
+  async createPack(data: CreatePackDto): Promise<PackDefinition> {
+    const existing = await this.prisma.packDefinition.findUnique({
+      where: { name: data.name },
+    });
+    if (existing) {
+      throw new BadRequestException(`Tên pack "${data.name}" đã tồn tại`);
+    }
+
+    return this.prisma.packDefinition.create({
+      data: {
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        cardCount: data.cardCount,
+        imageUrl: data.imageUrl,
+        isActive: data.isActive ?? false,
+      },
+    });
   }
 }
