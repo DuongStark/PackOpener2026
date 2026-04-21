@@ -31,13 +31,9 @@ export class UserPackController {
     @Req() req,
     @Query() query: getUserPacksDto,
   ): Promise<PaginatedOutput> {
-    return this.userPackService.getUserPacks(
-      req.user.id,
-      query
-    );
+    return this.userPackService.getUserPacks(req.user.id, query);
   }
 
- 
   @Get('/user-packs/:id')
   @UseGuards(JwtAuthGuard)
   async getUserPackById(@Param('id') id: string, @Req() req) {

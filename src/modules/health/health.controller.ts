@@ -1,4 +1,10 @@
-import { Controller, Get, HttpCode, HttpStatus, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { HealthService } from './health.service';
 
 @Controller('health')
@@ -24,7 +30,7 @@ export class HealthController {
       status: 'ok',
       timestamp: new Date().toISOString(),
       database: 'connected',
-      uptime: Math.floor((Date.now() - this.startTime) / 1000), 
+      uptime: Math.floor((Date.now() - this.startTime) / 1000),
     };
   }
 }

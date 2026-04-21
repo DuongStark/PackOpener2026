@@ -16,7 +16,11 @@ import { UserService } from '../user/user.service.js';
 
 @Injectable()
 export class InventoryService {
-  constructor(private readonly prisma: PrismaService, private transactionService: TransactionService, private readonly userService: UserService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private transactionService: TransactionService,
+    private readonly userService: UserService,
+  ) {}
 
   async getInventory(
     userId: string,
@@ -189,7 +193,7 @@ export class InventoryService {
         take: quantity,
         include: {
           card: true,
-        }
+        },
       });
 
       itemToSell.forEach(async (item) => {
@@ -199,47 +203,52 @@ export class InventoryService {
           },
           data: {
             status: Status.SOLD,
-          }
-        })
-      })
+          },
+        });
+      });
 
       await prisma.inventory.update({
         where: {
           userId_cardId: {
             userId,
-            cardId,}
+            cardId,
+          },
         },
         data: {
           quantity: {
             decrement: quantity,
-          }
-        }
-      })
+          },
+        },
+      });
 
       await prisma.inventory.deleteMany({
         where: {
           userId,
-            quantity: 0,
+          quantity: 0,
         },
-      })
+      });
       const balanceBefore = await this.userService.getUserBalance(userId);
 
       await prisma.user.update({
         where: { id: userId },
         data: {
-          balance: {increment: coinEarned},
+          balance: { increment: coinEarned },
         },
-      })
+      });
 
       const createTransactionDto = {
         userId,
-    type: Type.SELL_CARD,
-    amount: coinEarned,
-    balanceBefore,
-    balanceAfter: balanceBefore + coinEarned,
-    description: `Sold ${quantity}x ${inventoryItem.card.name} for ${coinEarned} coins`,
-  }
-      await this.transactionService.create(createTransactionDto, cardId, prisma);
+        type: Type.SELL_CARD,
+        amount: coinEarned,
+        balanceBefore,
+        balanceAfter: balanceBefore + coinEarned,
+        description: `Sold ${quantity}x ${inventoryItem.card.name} for ${coinEarned} coins`,
+      };
+      await this.transactionService.create(
+        createTransactionDto,
+        cardId,
+        prisma,
+      );
 
       return {
         cardId,
@@ -247,11 +256,9 @@ export class InventoryService {
         quantitySold: quantity,
         coinEarned,
         newBalance: balanceBefore + coinEarned,
-      }
+      };
     });
 
-    return data
+    return data;
   }
-
-  
 }

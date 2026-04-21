@@ -1,12 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../core/database/prisma.service.js';
 
-
 @Injectable()
 export class PackService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async findAll(
     page: number,
@@ -88,6 +85,4 @@ export class PackService {
     }
     return [pack.price, pack.name];
   }
-
-  
 }

@@ -30,7 +30,11 @@ export class AuthService {
     return result;
   }
 
-  login(user: any): { access_token: string; tokenType: string; expiresIn: string } {
+  login(user: any): {
+    access_token: string;
+    tokenType: string;
+    expiresIn: string;
+  } {
     const payload = {
       email: user.email,
       sub: user.id,

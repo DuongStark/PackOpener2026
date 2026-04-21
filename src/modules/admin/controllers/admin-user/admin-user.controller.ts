@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, Patch, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { UserService } from '../../../user/user.service.js';
 import { Roles } from '../../../../common/decorators/roles.decorator.js';
 import { Role } from '../../../../generated/prisma/enums.js';
@@ -8,25 +18,29 @@ import { RolesGuard } from '../../../../common/guards/roles.guard.js';
 @Controller('admin/users')
 @Roles(Role.ADMIN)
 export class AdminUserController {
+  constructor(private readonly userService: UserService) {}
 
-    constructor(private readonly userService: UserService) {}
+  @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  getAllUsers(@Query() query) {
+    return this.userService.getAllUsers(query);
+  }
 
-    @Get()
-    @UseGuards(JwtAuthGuard ,RolesGuard)
-    getAllUsers(@Query() query) {
-        return this.userService.getAllUsers(query);
-    }
+  @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  getUserById(@Param('id') id: string) {
+    return this.userService.getUserById(id);
+  }
 
-    
-    @Get(':id')
-    @UseGuards(JwtAuthGuard ,RolesGuard)
-    getUserById(@Param('id') id: string) {
-        return this.userService.getUserById(id);
-    }
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  updateUserRole(@Param('id') id: string, @Body() body, @Req() req) {
+    return this.userService.updateUserByAdmin(id, body, req.user.id);
+  }
 
-    @Patch(':id')
-    @UseGuards(JwtAuthGuard ,RolesGuard)
-    updateUserRole(@Param('id') id: string, @Body() body, @Req() req) {
-        return this.userService.updateUserByAdmin(id, body, req.user.id);
-    }
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async softDeleteUser(@Param('id') id: string, @Req() req) {
+    return this.userService.softDeleteUser(id, req.user.id);
+  }
 }

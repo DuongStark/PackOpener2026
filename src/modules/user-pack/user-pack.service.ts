@@ -194,5 +194,4 @@ export class UserPackService {
       }),
     };
   }
-
 }

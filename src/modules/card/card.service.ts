@@ -46,14 +46,14 @@ export class CardService {
     ]);
 
     return {
-        data,
-        total,
-        page,
-        limit,
-    }
+      data,
+      total,
+      page,
+      limit,
+    };
   }
 
-  async getCardById(id: string):Promise<Cards> {
+  async getCardById(id: string): Promise<Cards> {
     const card = await this.prisma.cards.findUnique({
       where: { id },
     });

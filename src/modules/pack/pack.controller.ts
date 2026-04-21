@@ -15,7 +15,6 @@ import { UpdatePackDto } from './dto/update-pack.dto';
 import { Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard.js';
 
-
 @Controller('packs')
 export class PackController {
   constructor(private readonly packService: PackService) {}
@@ -35,10 +34,8 @@ export class PackController {
     };
   }
 
-
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.packService.findOne(id);
   }
-
 }

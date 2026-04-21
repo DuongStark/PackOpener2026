@@ -1,23 +1,23 @@
-import { IsEnum, IsNumber, IsUUID } from "class-validator";
-import { Type } from "../../../generated/prisma/enums.js";
+import { IsEnum, IsNumber, IsUUID } from 'class-validator';
+import { Type } from '../../../generated/prisma/enums.js';
 
 export class CreateTransactionDto {
-    @IsUUID()
-    userId!: string;
+  @IsUUID()
+  userId!: string;
 
-    @IsEnum(Type, { message: `type must be one of: ${Object.values(Type).join(', ')}` })
-    type!: Type;
+  @IsEnum(Type, {
+    message: `type must be one of: ${Object.values(Type).join(', ')}`,
+  })
+  type!: Type;
 
-    @IsNumber()
-    amount!: number;
+  @IsNumber()
+  amount!: number;
 
-    @IsNumber()
-    balanceBefore!: number;
+  @IsNumber()
+  balanceBefore!: number;
 
-    @IsNumber()
-    balanceAfter!: number;
+  @IsNumber()
+  balanceAfter!: number;
 
-    description?: string;
-
-    
+  description?: string;
 }

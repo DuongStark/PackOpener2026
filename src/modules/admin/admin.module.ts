@@ -10,10 +10,15 @@ import { CardModule } from '../card/card.module.js';
 import { TransactionModule } from '../transaction/transaction.module.js';
 import { UserPackModule } from '../user-pack/user-pack.module.js';
 
-
 @Module({
   imports: [UserModule, CardModule, TransactionModule, UserPackModule],
-  controllers: [AdminUserController, AdminPackController, AdminCardController, AdminStatsController, AdminTransactionsController],
-  providers: [AdminService]
+  controllers: [
+    AdminUserController,
+    AdminPackController,
+    AdminCardController,
+    AdminStatsController,
+    AdminTransactionsController,
+  ],
+  providers: [AdminService],
 })
 export class AdminModule {}

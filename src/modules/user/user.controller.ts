@@ -7,11 +7,9 @@ import { UsernameDto } from './dto/username.dto.js';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-
   @Get('/me')
   @UseGuards(JwtAuthGuard)
   getProfile(@Req() req) {
-    
     return this.userService.getPublicProfile(req.user.id);
   }
 
@@ -24,5 +22,4 @@ export class UserController {
     );
     return updatedUser;
   }
-
 }

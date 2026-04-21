@@ -1,5 +1,5 @@
 import { IsBoolean, IsEnum, IsOptional } from 'class-validator';
-import { PackStatus} from '../../../generated/prisma/enums.js';
+import { PackStatus } from '../../../generated/prisma/enums.js';
 import { PaginationQueryDto } from '../../../common/constants/global.dto.js';
 import { Transform } from 'class-transformer';
 

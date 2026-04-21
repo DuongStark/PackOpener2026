@@ -196,6 +196,7 @@ export class UserService {
     } = query;
 
     const where: Prisma.UserWhereInput = {
+      isActive: true,
       ...(search && {
         OR: [
           { email: { contains: search, mode: 'insensitive' } },
@@ -301,7 +302,6 @@ export class UserService {
 
     if (balance !== undefined && balance !== user.balance) {
       await this.prisma.$transaction(async (tx) => {
-        
         await tx.user.update({
           where: { id },
           data: { balance },
@@ -322,18 +322,44 @@ export class UserService {
       });
     }
 
-    
     const updatedUser = await this.prisma.user.update({
       where: { id },
       data: {
         ...(username !== undefined && { username }),
         ...(role !== undefined && { role }),
         ...(isActive !== undefined && { isActive }),
-        
       },
     });
 
-    const { passwordHash, deletedAt, ...safeUser } = updatedUser;
-    return safeUser; 
+    const { passwordHash, ...safeUser } = updatedUser;
+    return safeUser;
+  }
+
+  async softDeleteUser(
+    id: string,
+    adminId: string,
+  ): Promise<{ message: string; deletedAt: string }> {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (id === adminId) {
+      throw new BadRequestException('Cannot delete your own admin account');
+    }
+
+    const now = new Date();
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        isActive: false,
+        deletedAt: now,
+      },
+    });
+
+    return {
+      message: 'User soft-deleted successfully',
+      deletedAt: now.toISOString(),
+    };
   }
 }
