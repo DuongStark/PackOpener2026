@@ -12,6 +12,7 @@ import { UserPackService } from './user-pack.service.js';
 import { PaginatedOutput } from '../../common/constants/global.dto.js';
 import { Status } from '../../generated/prisma/enums.js';
 import { getUserPacksDto } from './dto/get-userpack.dto.js';
+import { OpenPackResponseDto } from './dto/open-pack.dto.js';
 
 interface buyPackResult {
   userPackId: string;
@@ -44,5 +45,11 @@ export class UserPackController {
   @UseGuards(JwtAuthGuard)
   async buyPack(@Param('id') id: string, @Req() req): Promise<buyPackResult> {
     return this.userPackService.buyPack(id, req.user.id);
+  }
+
+  @Post('user-packs/:id/open')
+  @UseGuards(JwtAuthGuard)
+  async openPack(@Param('id') id: string, @Req() req): Promise<OpenPackResponseDto> {
+    return this.userPackService.openPack(id, req.user.id);
   }
 }

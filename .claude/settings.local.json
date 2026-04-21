@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pkill -f \"node.*nest\")",
+      "Bash(rm -rf dist/prisma)",
+      "Bash(npm run *)",
+      "Bash(curl *)"
+    ]
+  }
+}

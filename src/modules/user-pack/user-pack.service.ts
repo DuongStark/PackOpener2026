@@ -11,6 +11,8 @@ import { TransactionService } from '../transaction/transaction.service.js';
 import { PaginatedOutput } from '../../common/constants/global.dto.js';
 import { Pack } from '../pack/entities/pack.entity.js';
 import { getUserPacksDto } from './dto/get-userpack.dto.js';
+import { OpenPackResponseDto } from './dto/open-pack.dto.js';
+import { RandomService } from '../../core/random/random.service.js';
 
 interface buyPackResult {
   userPackId: string;
@@ -44,6 +46,7 @@ export class UserPackService {
     private readonly packService: PackService,
     private readonly userService: UserService,
     private readonly prisma: PrismaService,
+    private readonly randomService: RandomService,
   ) {}
 
   async buyPack(packId: string, userId: string): Promise<buyPackResult> {
@@ -190,6 +193,171 @@ export class UserPackService {
           position: snapshot.position,
           imageUrl: snapshot.imageUrl,
           sellPrice: snapshot.sellPrice,
+        };
+      }),
+    };
+  }
+
+  async openPack(
+    userPackId: string,
+    userId: string,
+  ): Promise<OpenPackResponseDto> {
+    const userPack = await this.prisma.userPack.findUnique({
+      where: { id: userPackId },
+      include: {
+        pack: true,
+        // lay ket qua mo pack sap xep theo positionInPack
+        packOpeningResults: {
+          orderBy: { positionInPack: 'asc' },
+        },
+      },
+    });
+
+    if (!userPack) {
+      throw new NotFoundException('UserPack not found');
+    }
+
+    if (userPack.userId !== userId) {
+      throw new ForbiddenException('Forbidden');
+    }
+
+    //nếu mà pack mở r thì trả về kết quả
+    if (userPack.status === PackStatus.OPENED && userPack.openedAt) {
+      return {
+        userPackId: userPack.id,
+        openedAt: userPack.openedAt.toISOString(),
+        cards: userPack.packOpeningResults.map((r: any) => {
+          const snap = r.cardSnapshot as CardSnapshot;
+          return {
+            cardId: r.cardId,
+            name: snap.name,
+            rarity: snap.rarity,
+            overall: snap.overall,
+            pace: snap.pace,
+            shooting: snap.shooting,
+            passing: snap.passing,
+            dribbling: snap.dribbling,
+            defending: snap.defending,
+            physical: snap.physical,
+            position: snap.position,
+            club: snap.club,
+            country: snap.nation,
+            imageUrl: snap.imageUrl,
+          };
+        }),
+      };
+    }
+
+    //pack pending
+    const cardCount = userPack.pack.cardCount;
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      // lay danh sach card va weight
+      const cardPools = await tx.packCardPool.findMany({
+        where: { packId: userPack.packId },
+        select: { cardId: true, weight: true },
+      });
+
+      // Bước 3b: Random cardCount lan
+      const selectedCardIds: string[] = [];
+      for (let i = 0; i < cardCount; i++) {
+        const cardId = this.randomService.weightedRandom(
+          cardPools.map((cp) => ({ item: cp.cardId, weight: cp.weight })),
+        );
+        selectedCardIds.push(cardId);
+      }
+
+      // lay tt card de luu vao snapshot voi hien thi cho ng dung
+      const cards = await tx.cards.findMany({
+        where: { id: { in: selectedCardIds } },
+      });
+
+      // Map card arr de giam tg truy cap
+      const cardMap = new Map(cards.map((c) => [c.id, c]));
+
+      // luu vao packOpeningResult
+      const openResults = await tx.packOpeningResult.createManyAndReturn({
+        data: selectedCardIds.map((cardId, index) => {
+          const card = cardMap.get(cardId)!;
+          return {
+            userPackId,
+            cardId,
+            positionInPack: index,
+            cardSnapshot: {
+              name: card.name,
+              overall: card.overall,
+              rarity: card.rarity,
+              position: card.position,
+              imageUrl: card.imageUrl || '',
+              sellPrice: card.sellPrice,
+              club: card.club || '',
+              nation: card.nation || '',
+              pace: card.pace || 0,
+              shooting: card.shooting || 0,
+              passing: card.passing || 0,
+              dribbling: card.dribbling || 0,
+              defending: card.defending || 0,
+              physical: card.physical || 0,
+            } satisfies CardSnapshot,
+          };
+        }),
+      });
+      //add vao inventoryItem
+      await tx.inventoryItems.createMany({
+        data: openResults.map((r) => ({
+          userId,
+          cardId: r.cardId,
+          sourceResultId: r.id,
+          status: Status.IN_INVENTORY,
+        })),
+      });
+
+      //dem so card xuat hien bao lan trong kq
+      const cardCountMap = new Map<string, number>();
+      for (const r of openResults) {
+        cardCountMap.set(r.cardId, (cardCountMap.get(r.cardId) || 0) + 1);
+      }
+
+      //update va insert
+      for (const [cardId, count] of cardCountMap) {
+        await tx.inventory.upsert({
+          where: { userId_cardId: { userId, cardId } },
+          create: { userId, cardId, quantity: count },
+          update: { quantity: { increment: count } },
+        });
+      }
+
+      const updated = await tx.userPack.update({
+        where: { id: userPackId },
+        data: {
+          status: PackStatus.OPENED,
+          openedAt: new Date(),
+        },
+      });
+
+      return { updated, openResults };
+    });
+
+    return {
+      userPackId: result.updated.id,
+      openedAt: result.updated.openedAt!.toISOString(),
+      cards: result.openResults.map((r: any) => {
+        const snap = r.cardSnapshot as CardSnapshot;
+        return {
+          cardId: r.cardId,
+          name: snap.name,
+          rarity: snap.rarity,
+          overall: snap.overall,
+          pace: snap.pace ?? 0,
+          shooting: snap.shooting ?? 0,
+          passing: snap.passing ?? 0,
+          dribbling: snap.dribbling ?? 0,
+          defending: snap.defending ?? 0,
+          physical: snap.physical ?? 0,
+          position: snap.position,
+          club: snap.club ?? '',
+          nation: snap.nation ?? '',
+          imageUrl: snap.imageUrl,
         };
       }),
     };
