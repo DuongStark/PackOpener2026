@@ -64,4 +64,19 @@ export class CardService {
 
     return card;
   }
+
+  async createCard(data: CreateCardDto): Promise<Cards> {
+    const existingCard = await this.prisma.cards.findUnique({
+      where: { sofifaId: data.sofifaId },
+    });
+
+    if (existingCard) {
+      throw new NotFoundException('Card with this sofifaId already exists');
+    }
+
+    return this.prisma.cards.create({
+      data,
+    });
+
+  }
 }
