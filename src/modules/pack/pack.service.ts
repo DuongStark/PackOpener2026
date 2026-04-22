@@ -9,7 +9,11 @@ import { CreatePackDto } from './dto/create-pack.dto.js';
 import { UpdatePackDto } from './dto/update-pack.dto.js';
 import { PackCardPool, PackDefinition } from '../../generated/prisma/client.js';
 import { packPoolDto } from './dto/packPool.dto.js';
-import { addPoolDto } from './dto/addPool.dto.js';
+import { addPoolDto, addPoolResponseDto } from './dto/addPool.dto.js';
+import {
+  updateWeightDto,
+  updateWeightResponseDto,
+} from './dto/updatePool.dto.js';
 
 @Injectable()
 export class PackService {
@@ -200,25 +204,27 @@ export class PackService {
                 id: true,
                 name: true,
                 rarity: true,
-              }}
-          }
-        }}
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!pack) {
       throw new NotFoundException('Pack not found');
     }
 
-    const poolItems = pack.packCardPools.map(pool => ({
-      id: pool.card.id,
+    const poolItems = pack.packCardPools.map((pool) => ({
+      id: pool.id,
       cardName: pool.card.name,
       rarity: pool.card.rarity,
       weight: pool.weight,
-      probability: 0, 
+      probability: 0,
     }));
 
     const totalWeight = poolItems.reduce((sum, item) => sum + item.weight, 0);
-    poolItems.forEach(item => {
+    poolItems.forEach((item) => {
       item.probability = totalWeight > 0 ? item.weight / totalWeight : 0;
     });
 
@@ -227,10 +233,13 @@ export class PackService {
       packName: pack.name,
       totalWeight,
       pool: poolItems,
-    }
+    };
   }
 
-  async addToPackPool(id: string, data: addPoolDto): Promise<PackCardPool> {
+  async addToPackPool(
+    id: string,
+    data: addPoolDto,
+  ): Promise<addPoolResponseDto> {
     const pack = await this.prisma.packDefinition.findUnique({
       where: { id },
     });
@@ -268,11 +277,51 @@ export class PackService {
       },
     });
 
+    const sum = await this.prisma.packCardPool.aggregate({
+      where: { packId: id },
+      _sum: { weight: true },
+    });
+
+    const totalWeight = sum._sum.weight ?? 0;
+
     return {
       id: cardPool.id,
       packId: cardPool.packId,
       cardId: cardPool.cardId,
       weight: cardPool.weight,
+      probability: totalWeight > 0 ? cardPool.weight / totalWeight : 0,
+    };
+  }
+
+  async updateWeightCard(
+    packId: string,
+    id: string,
+    data: updateWeightDto,
+  ): Promise<updateWeightResponseDto> {
+    const pool = await this.prisma.packCardPool.findUnique({
+      where: { id },
+    });
+
+    if (!pool) {
+      throw new NotFoundException('Pool entry not found');
     }
+
+    const updatedPool = await this.prisma.packCardPool.update({
+      where: { id },
+      data: { weight: data.weight },
+    });
+
+    const sum = await this.prisma.packCardPool.aggregate({
+      where: { packId },
+      _sum: { weight: true },
+    });
+
+    const totalWeight = sum._sum.weight ?? 0;
+
+    return {
+      id,
+      weight: updatedPool.weight,
+      probability: totalWeight > 0 ? updatedPool.weight / totalWeight : 0,
+    };
   }
 }
