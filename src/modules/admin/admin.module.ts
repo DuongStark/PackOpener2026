@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
 import { AdminService } from './admin.service';
 import { AdminUserController } from './controllers/admin-user/admin-user.controller';
 import { AdminPackController } from './controllers/admin-pack/admin-pack.controller';
@@ -12,7 +13,17 @@ import { UserPackModule } from '../user-pack/user-pack.module.js';
 import { PackModule } from '../pack/pack.module.js';
 
 @Module({
-  imports: [UserModule, CardModule, TransactionModule, UserPackModule, PackModule],
+  imports: [
+    CacheModule.register({
+      ttl: 300000,
+      max: 100,
+    }),
+    UserModule,
+    CardModule,
+    TransactionModule,
+    UserPackModule,
+    PackModule,
+  ],
   controllers: [
     AdminUserController,
     AdminPackController,
