@@ -68,6 +68,16 @@ export class AdminPackController {
     return this.packService.updatePack(id, body);
   }
 
+  @Delete(':packId/pool/:poolId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async deleteFromPackPool(
+    @Param('packId') packId: string,
+    @Param('poolId') poolId: string,
+  ) {
+    await this.packService.deleteFromPackPool(packId, poolId);
+    return { message: 'Card removed from pack pool successfully' };
+  }
+
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   deletePack(@Param('id') id: string): Promise<any> {

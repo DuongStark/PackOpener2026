@@ -324,4 +324,27 @@ export class PackService {
       probability: totalWeight > 0 ? updatedPool.weight / totalWeight : 0,
     };
   }
+
+  async deleteFromPackPool(packId: string, poolId: string) {
+    const pool = await this.prisma.packCardPool.findUnique({
+      where: { id: poolId },
+    });
+
+    if (!pool) {
+      throw new NotFoundException('Pool entry not found');
+    }
+
+    const count = await this.prisma.packCardPool.count({
+      where: { packId },
+    });
+
+    if (count <= 1) {
+      throw new BadRequestException('Cannot remove last card from pool');
+    }
+
+    await this.prisma.packCardPool.delete({
+      where: { id: poolId },
+    });
+
+  }
 }
