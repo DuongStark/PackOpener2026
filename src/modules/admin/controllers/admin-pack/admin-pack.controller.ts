@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Param,
   Patch,
   Post,
@@ -33,5 +34,11 @@ export class AdminPackController {
     @Body() body: UpdatePackDto,
   ): Promise<PackDefinition> {
     return this.packService.updatePack(id, body);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  deletePack(@Param('id') id: string): Promise<any> {
+    return this.packService.deletePack(id);
   }
 }

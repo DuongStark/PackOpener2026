@@ -156,4 +156,31 @@ export class PackService {
       },
     });
   }
+
+  async deletePack(id: string): Promise<any> {
+    const pack = await this.prisma.packDefinition.findUnique({
+      where: { id },
+    });
+
+    if (!pack) {
+      throw new NotFoundException('Pack not found');
+    }
+
+    const soldCount = await this.prisma.userPack.count({
+      where: { packId: id },
+    });
+
+    if (soldCount > 0) {
+      throw new BadRequestException(
+        `Cannot delete pack with existing purchases. Set isActive=false instead.", "purchaseCount": ${soldCount}`,
+      );
+    }
+
+    await this.prisma.packDefinition.update({
+      where: { id },
+      data: { isActive: false },
+    });
+
+    return { message: 'Pack deleted successfully' };
+  }
 }
