@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Param,
   Patch,
   Post,
@@ -33,5 +34,12 @@ export class AdminCardController {
     @Body() body: UpdateCardDto,
   ): Promise<Cards> {
     return this.cardService.updateCard(id, body);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async deleteCard(@Param('id') id: string): Promise<{ message: string }> {
+    await this.cardService.deleteCard(id);
+    return { message: 'Card deleted successfully' };
   }
 }

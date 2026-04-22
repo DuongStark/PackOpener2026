@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
 import { PrismaService } from '../../core/database/prisma.service.js';
@@ -77,7 +81,6 @@ export class CardService {
     return this.prisma.cards.create({
       data,
     });
-
   }
 
   async updateCard(id: string, data: UpdateCardDto): Promise<Cards> {
@@ -92,6 +95,33 @@ export class CardService {
     return this.prisma.cards.update({
       where: { id },
       data,
+    });
+  }
+
+  async deleteCard(id: string): Promise<void> {
+    const card = await this.prisma.cards.findUnique({
+      where: { id },
+    });
+
+    if (!card) {
+      throw new NotFoundException('Card not found');
+    }
+
+    const packCardPoolsCount = await this.prisma.packCardPool.count({
+      where: { cardId: id },
+    });
+    const userCardsCount = await this.prisma.inventory.count({
+      where: { cardId: id },
+    });
+
+    if (packCardPoolsCount > 0 || userCardsCount > 0) {
+      throw new ConflictException(
+        `Card is referenced in pack pools or user inventories", "poolCount": ${packCardPoolsCount}, "inventoryCount": ${userCardsCount}`,
+      );
+    }
+
+    await this.prisma.cards.delete({
+      where: { id },
     });
   }
 }
