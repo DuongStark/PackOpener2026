@@ -3,7 +3,11 @@ import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { PrismaService } from '../../core/database/prisma.service.js';
 import { Prisma, Transaction } from '../../generated/prisma/client.js';
-import { GetTransactionDto } from './dto/get-transaction.dto.js';
+import {
+  GetALlTransaction,
+  GetTransactionDto,
+} from './dto/get-transaction.dto.js';
+import { PaginatedOutput } from '../../common/constants/global.dto.js';
 
 @Injectable()
 export class TransactionService {
@@ -64,5 +68,45 @@ export class TransactionService {
     return await this.prisma.transaction.findUnique({
       where: { id },
     });
+  }
+
+  async getAllTransactions(query: GetALlTransaction): Promise<PaginatedOutput> {
+    const { userId, type, from, to, page = 1, limit = 20 } = query;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.TransactionWhereInput = {
+      ...(userId && { userId }),
+      ...(type && { type }),
+      ...((from || to) && {
+        createdAt: {
+          ...(from && { gte: new Date(from) }),
+          ...(to && { lte: new Date(to) }),
+        },
+      }),
+    };
+
+    if (from && to && new Date(from) > new Date(to)) {
+      throw new Error(
+        'Invalid date range: "from" date must be before "to" date.',
+      );
+    }
+
+    const data = await this.prisma.transaction.findMany({
+      where,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip,
+      take: limit,
+    });
+
+    const total = await this.prisma.transaction.count({ where });
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+    };
   }
 }
