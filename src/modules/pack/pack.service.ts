@@ -1,13 +1,15 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../core/database/prisma.service.js';
 import { CreatePackDto } from './dto/create-pack.dto.js';
 import { UpdatePackDto } from './dto/update-pack.dto.js';
-import { PackDefinition } from '../../generated/prisma/client.js';
+import { PackCardPool, PackDefinition } from '../../generated/prisma/client.js';
 import { packPoolDto } from './dto/packPool.dto.js';
+import { addPoolDto } from './dto/addPool.dto.js';
 
 @Injectable()
 export class PackService {
@@ -225,6 +227,52 @@ export class PackService {
       packName: pack.name,
       totalWeight,
       pool: poolItems,
+    }
+  }
+
+  async addToPackPool(id: string, data: addPoolDto): Promise<PackCardPool> {
+    const pack = await this.prisma.packDefinition.findUnique({
+      where: { id },
+    });
+
+    if (!pack) {
+      throw new NotFoundException('Pack not found');
+    }
+
+    const card = await this.prisma.cards.findUnique({
+      where: { id: data.cardId },
+    });
+
+    if (!card) {
+      throw new NotFoundException('Card not found');
+    }
+
+    const existingPool = await this.prisma.packCardPool.findUnique({
+      where: {
+        packId_cardId: {
+          packId: id,
+          cardId: data.cardId,
+        },
+      },
+    });
+
+    if (existingPool) {
+      throw new ConflictException('Card already exists in this pack pool');
+    }
+
+    const cardPool = await this.prisma.packCardPool.create({
+      data: {
+        packId: id,
+        cardId: data.cardId,
+        weight: data.weight,
+      },
+    });
+
+    return {
+      id: cardPool.id,
+      packId: cardPool.packId,
+      cardId: cardPool.cardId,
+      weight: cardPool.weight,
     }
   }
 }
