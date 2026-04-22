@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
   Patch,
   Post,
@@ -15,6 +16,7 @@ import { Role } from '../../../../generated/prisma/enums.js';
 import { CreatePackDto } from '../../../pack/dto/create-pack.dto.js';
 import { UpdatePackDto } from '../../../pack/dto/update-pack.dto.js';
 import { PackDefinition } from '../../../../generated/prisma/client.js';
+import { packPoolDto } from '../../../pack/dto/packPool.dto.js';
 
 @Controller('admin/packs')
 @Roles(Role.ADMIN)
@@ -40,5 +42,11 @@ export class AdminPackController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   deletePack(@Param('id') id: string): Promise<any> {
     return this.packService.deletePack(id);
+  }
+
+  @Get(':id/pool')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  getPackPool(@Param('id') id: string): Promise<packPoolDto> {
+    return this.packService.getPackPool(id);
   }
 }

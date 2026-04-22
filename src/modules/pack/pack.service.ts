@@ -7,6 +7,7 @@ import { PrismaService } from '../../core/database/prisma.service.js';
 import { CreatePackDto } from './dto/create-pack.dto.js';
 import { UpdatePackDto } from './dto/update-pack.dto.js';
 import { PackDefinition } from '../../generated/prisma/client.js';
+import { packPoolDto } from './dto/packPool.dto.js';
 
 @Injectable()
 export class PackService {
@@ -182,5 +183,48 @@ export class PackService {
     });
 
     return { message: 'Pack deleted successfully' };
+  }
+
+  async getPackPool(id: string): Promise<packPoolDto> {
+    const pack = await this.prisma.packDefinition.findUnique({
+      where: { id },
+      include: {
+        packCardPools: {
+          select: {
+            id: true,
+            weight: true,
+            card: {
+              select: {
+                id: true,
+                name: true,
+                rarity: true,
+              }}
+          }
+        }}
+    });
+
+    if (!pack) {
+      throw new NotFoundException('Pack not found');
+    }
+
+    const poolItems = pack.packCardPools.map(pool => ({
+      id: pool.card.id,
+      cardName: pool.card.name,
+      rarity: pool.card.rarity,
+      weight: pool.weight,
+      probability: 0, 
+    }));
+
+    const totalWeight = poolItems.reduce((sum, item) => sum + item.weight, 0);
+    poolItems.forEach(item => {
+      item.probability = totalWeight > 0 ? item.weight / totalWeight : 0;
+    });
+
+    return {
+      packId: pack.id,
+      packName: pack.name,
+      totalWeight,
+      pool: poolItems,
+    }
   }
 }
