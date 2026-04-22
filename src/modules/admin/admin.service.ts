@@ -1,4 +1,9 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { PrismaService } from '../../core/database/prisma.service.js';
@@ -122,6 +127,178 @@ export class AdminService {
 
   async invalidateDashboardStatsCache() {
     await this.cache.del(DASHBOARD_CACHE_KEY);
+  }
+
+  async getUserStats(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        balance: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const [
+      packsTotal,
+      packsOpened,
+      uniqueCards,
+      totalCardsAgg,
+      coinSpentAgg,
+      coinEarnedAgg,
+      recentTransactions,
+      recentPacks,
+      currentCards,
+    ] = await Promise.all([
+      this.prisma.userPack.count({ where: { userId } }),
+      this.prisma.userPack.count({
+        where: { userId, status: PackStatus.OPENED },
+      }),
+      this.prisma.inventory.count({ where: { userId, quantity: { gt: 0 } } }),
+      this.prisma.inventory.aggregate({
+        where: { userId },
+        _sum: { quantity: true },
+      }),
+      this.prisma.transaction.aggregate({
+        where: { userId, amount: { lt: 0 } },
+        _sum: { amount: true },
+      }),
+      this.prisma.transaction.aggregate({
+        where: { userId, amount: { gt: 0 } },
+        _sum: { amount: true },
+      }),
+      this.prisma.transaction.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        select: {
+          id: true,
+          type: true,
+          amount: true,
+          balanceBefore: true,
+          balanceAfter: true,
+          description: true,
+          relatedEntityId: true,
+          createdAt: true,
+        },
+      }),
+      this.prisma.userPack.findMany({
+        where: { userId },
+        orderBy: { purchasedAt: 'desc' },
+        take: 10,
+        include: {
+          pack: {
+            select: {
+              id: true,
+              name: true,
+              price: true,
+              cardCount: true,
+            },
+          },
+          _count: {
+            select: { packOpeningResults: true },
+          },
+        },
+      }),
+      this.prisma.inventory.findMany({
+        where: { userId, quantity: { gt: 0 } },
+        orderBy: { quantity: 'desc' },
+        select: {
+          cardId: true,
+          quantity: true,
+          card: {
+            select: {
+              name: true,
+              overall: true,
+              rarity: true,
+              position: true,
+              imageUrl: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    const timeline = [
+      ...recentTransactions.map((tx) => ({
+        at: tx.createdAt.toISOString(),
+        type: 'TRANSACTION',
+        transactionId: tx.id,
+        transactionType: tx.type,
+        amount: tx.amount,
+        description: tx.description,
+      })),
+      ...recentPacks.flatMap((pack) => {
+        const events: Array<{
+          at: string;
+          type: 'PACK_PURCHASED' | 'PACK_OPENED';
+          userPackId: string;
+          packId: string;
+          packName: string;
+        }> = [
+          {
+            at: pack.purchasedAt.toISOString(),
+            type: 'PACK_PURCHASED',
+            userPackId: pack.id,
+            packId: pack.packId,
+            packName: pack.pack.name,
+          },
+        ];
+
+        if (pack.openedAt) {
+          events.push({
+            at: pack.openedAt.toISOString(),
+            type: 'PACK_OPENED',
+            userPackId: pack.id,
+            packId: pack.packId,
+            packName: pack.pack.name,
+          });
+        }
+
+        return events;
+      }),
+    ]
+      .sort((a, b) => b.at.localeCompare(a.at))
+      .slice(0, 40);
+
+    return {
+      userId: user.id,
+      email: user.email,
+      balance: user.balance,
+      stats: {
+        packsTotal,
+        packsOpened,
+        uniqueCards,
+        totalCards: totalCardsAgg._sum.quantity ?? 0,
+        coinSpent: Math.abs(coinSpentAgg._sum.amount ?? 0),
+        coinEarned: coinEarnedAgg._sum.amount ?? 0,
+      },
+      recentTransactions,
+      recentPacks: recentPacks.map((pack) => ({
+        id: pack.id,
+        packId: pack.packId,
+        packName: pack.pack.name,
+        packPrice: pack.pack.price,
+        status: pack.status,
+        purchasedAt: pack.purchasedAt,
+        openedAt: pack.openedAt,
+        cardsOpened: pack._count.packOpeningResults,
+      })),
+      currentCards: currentCards.map((item) => ({
+        cardId: item.cardId,
+        name: item.card.name,
+        overall: item.card.overall,
+        rarity: item.card.rarity,
+        position: item.card.position,
+        imageUrl: item.card.imageUrl,
+        quantity: item.quantity,
+      })),
+      timeline,
+    };
   }
 
   async getRevenueStats(
