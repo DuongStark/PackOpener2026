@@ -103,6 +103,8 @@ export const CardsScalarFieldEnum = {
   position: 'position',
   club: 'club',
   nation: 'nation',
+  clubImageUrl: 'clubImageUrl',
+  nationImageUrl: 'nationImageUrl',
   imageUrl: 'imageUrl',
   sellPrice: 'sellPrice',
   pace: 'pace',

@@ -92,6 +92,8 @@ model Cards {
   position           Position
   club               String?
   nation             String?
+  clubImageUrl       String?             @map("club_image_url")
+  nationImageUrl     String?             @map("nation_image_url")
   imageUrl           String?             @map("image_url")
   sellPrice          Int                 @default(10) @map("sell_price")
   pace               Int?

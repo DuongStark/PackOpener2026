@@ -59,6 +59,8 @@ export type CardsMinAggregateOutputType = {
   position: $Enums.Position | null
   club: string | null
   nation: string | null
+  clubImageUrl: string | null
+  nationImageUrl: string | null
   imageUrl: string | null
   sellPrice: number | null
   pace: number | null
@@ -79,6 +81,8 @@ export type CardsMaxAggregateOutputType = {
   position: $Enums.Position | null
   club: string | null
   nation: string | null
+  clubImageUrl: string | null
+  nationImageUrl: string | null
   imageUrl: string | null
   sellPrice: number | null
   pace: number | null
@@ -99,6 +103,8 @@ export type CardsCountAggregateOutputType = {
   position: number
   club: number
   nation: number
+  clubImageUrl: number
+  nationImageUrl: number
   imageUrl: number
   sellPrice: number
   pace: number
@@ -145,6 +151,8 @@ export type CardsMinAggregateInputType = {
   position?: true
   club?: true
   nation?: true
+  clubImageUrl?: true
+  nationImageUrl?: true
   imageUrl?: true
   sellPrice?: true
   pace?: true
@@ -165,6 +173,8 @@ export type CardsMaxAggregateInputType = {
   position?: true
   club?: true
   nation?: true
+  clubImageUrl?: true
+  nationImageUrl?: true
   imageUrl?: true
   sellPrice?: true
   pace?: true
@@ -185,6 +195,8 @@ export type CardsCountAggregateInputType = {
   position?: true
   club?: true
   nation?: true
+  clubImageUrl?: true
+  nationImageUrl?: true
   imageUrl?: true
   sellPrice?: true
   pace?: true
@@ -292,6 +304,8 @@ export type CardsGroupByOutputType = {
   position: $Enums.Position
   club: string | null
   nation: string | null
+  clubImageUrl: string | null
+  nationImageUrl: string | null
   imageUrl: string | null
   sellPrice: number
   pace: number | null
@@ -335,6 +349,8 @@ export type CardsWhereInput = {
   position?: Prisma.EnumPositionFilter<"Cards"> | $Enums.Position
   club?: Prisma.StringNullableFilter<"Cards"> | string | null
   nation?: Prisma.StringNullableFilter<"Cards"> | string | null
+  clubImageUrl?: Prisma.StringNullableFilter<"Cards"> | string | null
+  nationImageUrl?: Prisma.StringNullableFilter<"Cards"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Cards"> | string | null
   sellPrice?: Prisma.IntFilter<"Cards"> | number
   pace?: Prisma.IntNullableFilter<"Cards"> | number | null
@@ -359,6 +375,8 @@ export type CardsOrderByWithRelationInput = {
   position?: Prisma.SortOrder
   club?: Prisma.SortOrderInput | Prisma.SortOrder
   nation?: Prisma.SortOrderInput | Prisma.SortOrder
+  clubImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  nationImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   sellPrice?: Prisma.SortOrder
   pace?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -386,6 +404,8 @@ export type CardsWhereUniqueInput = Prisma.AtLeast<{
   position?: Prisma.EnumPositionFilter<"Cards"> | $Enums.Position
   club?: Prisma.StringNullableFilter<"Cards"> | string | null
   nation?: Prisma.StringNullableFilter<"Cards"> | string | null
+  clubImageUrl?: Prisma.StringNullableFilter<"Cards"> | string | null
+  nationImageUrl?: Prisma.StringNullableFilter<"Cards"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Cards"> | string | null
   sellPrice?: Prisma.IntFilter<"Cards"> | number
   pace?: Prisma.IntNullableFilter<"Cards"> | number | null
@@ -410,6 +430,8 @@ export type CardsOrderByWithAggregationInput = {
   position?: Prisma.SortOrder
   club?: Prisma.SortOrderInput | Prisma.SortOrder
   nation?: Prisma.SortOrderInput | Prisma.SortOrder
+  clubImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  nationImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   sellPrice?: Prisma.SortOrder
   pace?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -438,6 +460,8 @@ export type CardsScalarWhereWithAggregatesInput = {
   position?: Prisma.EnumPositionWithAggregatesFilter<"Cards"> | $Enums.Position
   club?: Prisma.StringNullableWithAggregatesFilter<"Cards"> | string | null
   nation?: Prisma.StringNullableWithAggregatesFilter<"Cards"> | string | null
+  clubImageUrl?: Prisma.StringNullableWithAggregatesFilter<"Cards"> | string | null
+  nationImageUrl?: Prisma.StringNullableWithAggregatesFilter<"Cards"> | string | null
   imageUrl?: Prisma.StringNullableWithAggregatesFilter<"Cards"> | string | null
   sellPrice?: Prisma.IntWithAggregatesFilter<"Cards"> | number
   pace?: Prisma.IntNullableWithAggregatesFilter<"Cards"> | number | null
@@ -458,6 +482,8 @@ export type CardsCreateInput = {
   position: $Enums.Position
   club?: string | null
   nation?: string | null
+  clubImageUrl?: string | null
+  nationImageUrl?: string | null
   imageUrl?: string | null
   sellPrice?: number
   pace?: number | null
@@ -482,6 +508,8 @@ export type CardsUncheckedCreateInput = {
   position: $Enums.Position
   club?: string | null
   nation?: string | null
+  clubImageUrl?: string | null
+  nationImageUrl?: string | null
   imageUrl?: string | null
   sellPrice?: number
   pace?: number | null
@@ -506,6 +534,8 @@ export type CardsUpdateInput = {
   position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clubImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sellPrice?: Prisma.IntFieldUpdateOperationsInput | number
   pace?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -530,6 +560,8 @@ export type CardsUncheckedUpdateInput = {
   position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clubImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sellPrice?: Prisma.IntFieldUpdateOperationsInput | number
   pace?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -554,6 +586,8 @@ export type CardsCreateManyInput = {
   position: $Enums.Position
   club?: string | null
   nation?: string | null
+  clubImageUrl?: string | null
+  nationImageUrl?: string | null
   imageUrl?: string | null
   sellPrice?: number
   pace?: number | null
@@ -574,6 +608,8 @@ export type CardsUpdateManyMutationInput = {
   position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clubImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sellPrice?: Prisma.IntFieldUpdateOperationsInput | number
   pace?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -594,6 +630,8 @@ export type CardsUncheckedUpdateManyInput = {
   position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clubImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sellPrice?: Prisma.IntFieldUpdateOperationsInput | number
   pace?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -614,6 +652,8 @@ export type CardsCountOrderByAggregateInput = {
   position?: Prisma.SortOrder
   club?: Prisma.SortOrder
   nation?: Prisma.SortOrder
+  clubImageUrl?: Prisma.SortOrder
+  nationImageUrl?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   sellPrice?: Prisma.SortOrder
   pace?: Prisma.SortOrder
@@ -646,6 +686,8 @@ export type CardsMaxOrderByAggregateInput = {
   position?: Prisma.SortOrder
   club?: Prisma.SortOrder
   nation?: Prisma.SortOrder
+  clubImageUrl?: Prisma.SortOrder
+  nationImageUrl?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   sellPrice?: Prisma.SortOrder
   pace?: Prisma.SortOrder
@@ -666,6 +708,8 @@ export type CardsMinOrderByAggregateInput = {
   position?: Prisma.SortOrder
   club?: Prisma.SortOrder
   nation?: Prisma.SortOrder
+  clubImageUrl?: Prisma.SortOrder
+  nationImageUrl?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   sellPrice?: Prisma.SortOrder
   pace?: Prisma.SortOrder
@@ -779,6 +823,8 @@ export type CardsCreateWithoutPackCardPoolsInput = {
   position: $Enums.Position
   club?: string | null
   nation?: string | null
+  clubImageUrl?: string | null
+  nationImageUrl?: string | null
   imageUrl?: string | null
   sellPrice?: number
   pace?: number | null
@@ -802,6 +848,8 @@ export type CardsUncheckedCreateWithoutPackCardPoolsInput = {
   position: $Enums.Position
   club?: string | null
   nation?: string | null
+  clubImageUrl?: string | null
+  nationImageUrl?: string | null
   imageUrl?: string | null
   sellPrice?: number
   pace?: number | null
@@ -841,6 +889,8 @@ export type CardsUpdateWithoutPackCardPoolsInput = {
   position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clubImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sellPrice?: Prisma.IntFieldUpdateOperationsInput | number
   pace?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -864,6 +914,8 @@ export type CardsUncheckedUpdateWithoutPackCardPoolsInput = {
   position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clubImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sellPrice?: Prisma.IntFieldUpdateOperationsInput | number
   pace?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -887,6 +939,8 @@ export type CardsCreateWithoutPackOpeningResultsInput = {
   position: $Enums.Position
   club?: string | null
   nation?: string | null
+  clubImageUrl?: string | null
+  nationImageUrl?: string | null
   imageUrl?: string | null
   sellPrice?: number
   pace?: number | null
@@ -910,6 +964,8 @@ export type CardsUncheckedCreateWithoutPackOpeningResultsInput = {
   position: $Enums.Position
   club?: string | null
   nation?: string | null
+  clubImageUrl?: string | null
+  nationImageUrl?: string | null
   imageUrl?: string | null
   sellPrice?: number
   pace?: number | null
@@ -949,6 +1005,8 @@ export type CardsUpdateWithoutPackOpeningResultsInput = {
   position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clubImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sellPrice?: Prisma.IntFieldUpdateOperationsInput | number
   pace?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -972,6 +1030,8 @@ export type CardsUncheckedUpdateWithoutPackOpeningResultsInput = {
   position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clubImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sellPrice?: Prisma.IntFieldUpdateOperationsInput | number
   pace?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -995,6 +1055,8 @@ export type CardsCreateWithoutInventoriesInput = {
   position: $Enums.Position
   club?: string | null
   nation?: string | null
+  clubImageUrl?: string | null
+  nationImageUrl?: string | null
   imageUrl?: string | null
   sellPrice?: number
   pace?: number | null
@@ -1018,6 +1080,8 @@ export type CardsUncheckedCreateWithoutInventoriesInput = {
   position: $Enums.Position
   club?: string | null
   nation?: string | null
+  clubImageUrl?: string | null
+  nationImageUrl?: string | null
   imageUrl?: string | null
   sellPrice?: number
   pace?: number | null
@@ -1057,6 +1121,8 @@ export type CardsUpdateWithoutInventoriesInput = {
   position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clubImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sellPrice?: Prisma.IntFieldUpdateOperationsInput | number
   pace?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1080,6 +1146,8 @@ export type CardsUncheckedUpdateWithoutInventoriesInput = {
   position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clubImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sellPrice?: Prisma.IntFieldUpdateOperationsInput | number
   pace?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1103,6 +1171,8 @@ export type CardsCreateWithoutInventoryItemsInput = {
   position: $Enums.Position
   club?: string | null
   nation?: string | null
+  clubImageUrl?: string | null
+  nationImageUrl?: string | null
   imageUrl?: string | null
   sellPrice?: number
   pace?: number | null
@@ -1126,6 +1196,8 @@ export type CardsUncheckedCreateWithoutInventoryItemsInput = {
   position: $Enums.Position
   club?: string | null
   nation?: string | null
+  clubImageUrl?: string | null
+  nationImageUrl?: string | null
   imageUrl?: string | null
   sellPrice?: number
   pace?: number | null
@@ -1165,6 +1237,8 @@ export type CardsUpdateWithoutInventoryItemsInput = {
   position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clubImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sellPrice?: Prisma.IntFieldUpdateOperationsInput | number
   pace?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1188,6 +1262,8 @@ export type CardsUncheckedUpdateWithoutInventoryItemsInput = {
   position?: Prisma.EnumPositionFieldUpdateOperationsInput | $Enums.Position
   club?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clubImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sellPrice?: Prisma.IntFieldUpdateOperationsInput | number
   pace?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1269,6 +1345,8 @@ export type CardsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   position?: boolean
   club?: boolean
   nation?: boolean
+  clubImageUrl?: boolean
+  nationImageUrl?: boolean
   imageUrl?: boolean
   sellPrice?: boolean
   pace?: boolean
@@ -1294,6 +1372,8 @@ export type CardsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   position?: boolean
   club?: boolean
   nation?: boolean
+  clubImageUrl?: boolean
+  nationImageUrl?: boolean
   imageUrl?: boolean
   sellPrice?: boolean
   pace?: boolean
@@ -1314,6 +1394,8 @@ export type CardsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   position?: boolean
   club?: boolean
   nation?: boolean
+  clubImageUrl?: boolean
+  nationImageUrl?: boolean
   imageUrl?: boolean
   sellPrice?: boolean
   pace?: boolean
@@ -1334,6 +1416,8 @@ export type CardsSelectScalar = {
   position?: boolean
   club?: boolean
   nation?: boolean
+  clubImageUrl?: boolean
+  nationImageUrl?: boolean
   imageUrl?: boolean
   sellPrice?: boolean
   pace?: boolean
@@ -1345,7 +1429,7 @@ export type CardsSelectScalar = {
   createdAt?: boolean
 }
 
-export type CardsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "sofifaId" | "name" | "overall" | "rarity" | "position" | "club" | "nation" | "imageUrl" | "sellPrice" | "pace" | "shooting" | "passing" | "dribbling" | "defending" | "physical" | "createdAt", ExtArgs["result"]["cards"]>
+export type CardsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "sofifaId" | "name" | "overall" | "rarity" | "position" | "club" | "nation" | "clubImageUrl" | "nationImageUrl" | "imageUrl" | "sellPrice" | "pace" | "shooting" | "passing" | "dribbling" | "defending" | "physical" | "createdAt", ExtArgs["result"]["cards"]>
 export type CardsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   packCardPools?: boolean | Prisma.Cards$packCardPoolsArgs<ExtArgs>
   packOpeningResults?: boolean | Prisma.Cards$packOpeningResultsArgs<ExtArgs>
@@ -1373,6 +1457,8 @@ export type $CardsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     position: $Enums.Position
     club: string | null
     nation: string | null
+    clubImageUrl: string | null
+    nationImageUrl: string | null
     imageUrl: string | null
     sellPrice: number
     pace: number | null
@@ -1817,6 +1903,8 @@ export interface CardsFieldRefs {
   readonly position: Prisma.FieldRef<"Cards", 'Position'>
   readonly club: Prisma.FieldRef<"Cards", 'String'>
   readonly nation: Prisma.FieldRef<"Cards", 'String'>
+  readonly clubImageUrl: Prisma.FieldRef<"Cards", 'String'>
+  readonly nationImageUrl: Prisma.FieldRef<"Cards", 'String'>
   readonly imageUrl: Prisma.FieldRef<"Cards", 'String'>
   readonly sellPrice: Prisma.FieldRef<"Cards", 'Int'>
   readonly pace: Prisma.FieldRef<"Cards", 'Int'>
