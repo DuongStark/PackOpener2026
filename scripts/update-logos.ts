@@ -58,16 +58,15 @@ async function main() {
 
     if (card.club && clubMapping[card.club]) {
       const clubId = clubMapping[card.club];
-      // EA CDN Format: https://cdn.sofifa.net/meta/team/{ID}/120.png
-      updateData.clubImageUrl = `https://cdn.sofifa.net/meta/team/${clubId}/120.png`;
+      // Futbin CDN Format: https://cdn.futbin.com/content/fifa24/img/clubs/{ID}.png
+      updateData.clubImageUrl = `https://cdn.futbin.com/content/fifa24/img/clubs/${clubId}.png`;
       needsUpdate = true;
     }
 
     if (card.nation && nationMapping[card.nation]) {
       const nationId = nationMapping[card.nation];
-      // EA CDN Format: https://cdn.sofifa.net/meta/nation/{ID}/120.png
-      // Lưu ý: Đôi khi CDN dùng flag code thay vì ID (nhưng dùng ID meta/nation an toàn nhất trên sofifa)
-      updateData.nationImageUrl = `https://cdn.sofifa.net/meta/nation/${nationId}/120.png`;
+      // Futbin CDN Format: https://cdn.futbin.com/content/fifa24/img/nation/{ID}.png
+      updateData.nationImageUrl = `https://cdn.futbin.com/content/fifa24/img/nation/${nationId}.png`;
       needsUpdate = true;
     }
 

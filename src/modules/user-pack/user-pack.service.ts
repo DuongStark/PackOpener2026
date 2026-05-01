@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -39,6 +40,9 @@ interface CardSnapshot {
   physical?: number;
 }
 
+const FREE_PACK_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+const FREE_PACK_DAILY_LIMIT = 10;
+
 @Injectable()
 export class UserPackService {
   constructor(
@@ -51,6 +55,10 @@ export class UserPackService {
 
   async buyPack(packId: string, userId: string): Promise<buyPackResult> {
     const [price, name] = await this.packService.findPackPrices(packId);
+    if (price === 0) {
+      await this.assertFreePackAvailable(packId, userId);
+    }
+
     const [userPackId, newBalance] = await this.prisma.$transaction(
       async (tx) => {
         const data = await this.userService.deductBalance(userId, price, tx);
@@ -82,6 +90,36 @@ export class UserPackService {
       newBalance,
       status: PackStatus.PENDING,
     };
+  }
+
+  private async assertFreePackAvailable(
+    packId: string,
+    userId: string,
+  ): Promise<void> {
+    const cooldownStartedAt = new Date(Date.now() - FREE_PACK_COOLDOWN_MS);
+    const recentClaims = await this.prisma.userPack.findMany({
+      where: {
+        userId,
+        packId,
+        purchasedAt: { gte: cooldownStartedAt },
+      },
+      orderBy: { purchasedAt: 'desc' },
+      select: { purchasedAt: true },
+    });
+
+    if (recentClaims.length < FREE_PACK_DAILY_LIMIT) return;
+
+    const oldestCountedClaim = recentClaims[recentClaims.length - 1];
+
+    const availableAt = new Date(
+      oldestCountedClaim.purchasedAt.getTime() + FREE_PACK_COOLDOWN_MS,
+    );
+    throw new ConflictException({
+      statusCode: 409,
+      message: `Free pack is limited to ${FREE_PACK_DAILY_LIMIT} claims every 24 hours`,
+      limit: FREE_PACK_DAILY_LIMIT,
+      availableAt: availableAt.toISOString(),
+    });
   }
 
   async getUserPacks(
