@@ -1,6 +1,7 @@
 # PackOpener API Documentation
 
 ## Base URL
+
 ```
 http://localhost:3000
 ```
@@ -8,6 +9,7 @@ http://localhost:3000
 ## Authentication
 
 API yêu cầu JWT token cho các endpoint bảo vệ. Token được gửi trong header:
+
 ```
 Authorization: Bearer <token>
 ```
@@ -17,24 +19,31 @@ Authorization: Bearer <token>
 ## Enum Values
 
 ### Position
+
 `GK`, `CB`, `LB`, `RB`, `LM`, `RM`, `CM`, `CDM`, `CAM`, `LW`, `RW`, `ST`
 
 ### Rarity
+
 `BRONZE_COMMON`, `BRONZE_RARE`, `SILVER_COMMON`, `SILVER_RARE`, `GOLD_COMMON`, `GOLD_RARE`, `GOLD_EPIC`, `DIAMOND_COMMON`, `DIAMOND_RARE`
 
 ### Role
+
 `USER`, `ADMIN`
 
 ### Status (Inventory)
+
 `IN_INVENTORY`, `LISTED`, `SOLD`, `BURNED`
 
 ### Type (Transaction)
+
 `BUY_PACK`, `SELL_CARD`, `INITIAL_CREDIT`, `ADMIN_ADJUSTMENT`
 
 ### PackStatus
+
 `PENDING`, `OPENED`
 
 ### SortOrder
+
 `asc`, `desc`
 
 ---
@@ -44,6 +53,7 @@ Authorization: Bearer <token>
 ### POST /auth/register - Đăng ký tài khoản mới
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -52,13 +62,14 @@ Authorization: Bearer <token>
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| email | string | Yes | Email hợp lệ |
-| password | string | Yes | Tối thiểu 6 ký tự |
-| username | string | Yes | 6-20 ký tự, phải có cả chữ và số |
+| Field    | Type   | Required | Description                      |
+| -------- | ------ | -------- | -------------------------------- |
+| email    | string | Yes      | Email hợp lệ                     |
+| password | string | Yes      | Tối thiểu 6 ký tự                |
+| username | string | Yes      | 6-20 ký tự, phải có cả chữ và số |
 
 **Response (201):**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIs...",
@@ -77,6 +88,7 @@ Authorization: Bearer <token>
 ### POST /auth/login - Đăng nhập
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -85,6 +97,7 @@ Authorization: Bearer <token>
 ```
 
 **Response (200):**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIs...",
@@ -107,6 +120,7 @@ Authorization: Bearer <token>
 **Headers:** `Authorization: Bearer <token>`
 
 **Response (200):**
+
 ```json
 {
   "id": "uuid",
@@ -125,17 +139,19 @@ Authorization: Bearer <token>
 **Headers:** `Authorization: Bearer <token>`
 
 **Request Body:**
+
 ```json
 {
   "username": "newusername123"
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| username | string | Yes | 6-100 ký tự |
+| Field    | Type   | Required | Description |
+| -------- | ------ | -------- | ----------- |
+| username | string | Yes      | 6-100 ký tự |
 
 **Response (200):**
+
 ```json
 {
   "id": "uuid",
@@ -165,18 +181,28 @@ Authorization: Bearer <token>
 **Example:** `/user-packs?page=1&limit=20&status=PENDING&includeCards=true`
 
 **Response (200):**
+
 ```json
 {
   "data": [
     {
-      "id": "uuid",
-      "packId": "uuid",
-      "userId": "uuid",
+      "id": "uuid-user-pack",
+      "packId": "uuid-pack",
+      "userId": "uuid-user",
       "status": "PENDING",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "purchasedAt": "2024-01-01T00:00:00.000Z",
+      "openedAt": null,
       "pack": {
-        "id": "uuid",
-        "name": "Premium Pack",
-        "price": 500
+        "id": "uuid-pack",
+        "name": "Premium Gold",
+        "price": 1900,
+        "description": "More cards, rich Gold odds",
+        "imageUrl": "https://...",
+        "cardCount": 7,
+        "tierCode": "PG-08",
+        "subtitle": "Value Series",
+        "oddsTeaser": "More cards, rich Gold odds"
       }
     }
   ],
@@ -193,17 +219,26 @@ Authorization: Bearer <token>
 **Headers:** `Authorization: Bearer <token>`
 
 **Response (200):**
+
 ```json
 {
-  "id": "uuid",
-  "packId": "uuid",
-  "userId": "uuid",
+  "id": "uuid-user-pack",
+  "packId": "uuid-pack",
+  "userId": "uuid-user",
   "status": "PENDING",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "purchasedAt": "2024-01-01T00:00:00.000Z",
   "openedAt": null,
   "pack": {
-    "id": "uuid",
-    "name": "Premium Pack",
-    "price": 500
+    "id": "uuid-pack",
+    "name": "Premium Gold",
+    "price": 1900,
+    "description": "More cards, rich Gold odds",
+    "imageUrl": "https://...",
+    "cardCount": 7,
+    "tierCode": "PG-08",
+    "subtitle": "Value Series",
+    "oddsTeaser": "More cards, rich Gold odds"
   }
 }
 ```
@@ -220,6 +255,7 @@ Authorization: Bearer <token>
 | id | string | ID của pack |
 
 **Response (200):**
+
 ```json
 {
   "userPackId": "uuid",
@@ -242,6 +278,7 @@ Authorization: Bearer <token>
 | id | string | ID của user pack |
 
 **Response (200):**
+
 ```json
 {
   "userPackId": "uuid",
@@ -286,6 +323,7 @@ Authorization: Bearer <token>
 **Example:** `/transactions?page=1&limit=10&type=BUY_PACK&from=2024-01-01&to=2024-12-31`
 
 **Response (200):**
+
 ```json
 {
   "data": [
@@ -311,6 +349,7 @@ Authorization: Bearer <token>
 **Headers:** `Authorization: Bearer <token>`
 
 **Response (200):**
+
 ```json
 {
   "id": "uuid",
@@ -335,15 +374,21 @@ Authorization: Bearer <token>
 | limit | number | 10 | Số items/trang |
 
 **Response (200):**
+
 ```json
 {
   "data": [
     {
-      "id": "uuid",
-      "name": "Premium Pack",
-      "price": 500,
-      "description": "Contains 5 cards",
-      "imageUrl": "https://..."
+      "id": "uuid-pack",
+      "name": "Premium Gold Pack",
+      "price": 1900,
+      "description": "More cards, rich Gold odds",
+      "imageUrl": "https://...",
+      "cardCount": 7,
+      "tierCode": "PG-08",
+      "subtitle": "Value Series",
+      "oddsTeaser": "More cards, rich Gold odds",
+      "rarityFocus": ["GOLD_RARE", "GOLD_EPIC"]
     }
   ],
   "total": 5,
@@ -357,6 +402,7 @@ Authorization: Bearer <token>
 ### GET /packs/:id - Lấy pack chi tiết
 
 **Response (200):**
+
 ```json
 {
   "id": "uuid",
@@ -387,22 +433,33 @@ Authorization: Bearer <token>
 | sortOrder | string | Thứ tự: `asc`, `desc` |
 
 **Response (200):**
+
 ```json
 {
   "data": [
     {
-      "id": "uuid",
-      "cardId": "uuid",
-      "userId": "uuid",
+      "id": "uuid-inventory-item",
+      "cardId": "uuid-card",
       "quantity": 1,
       "status": "IN_INVENTORY",
       "card": {
-        "id": "uuid",
-        "name": "Lionel Messi",
-        "rarity": "GOLD_EPIC",
-        "overall": 93,
+        "id": "uuid-card",
+        "name": "K. Mbappe",
+        "rarity": "DIAMOND_RARE",
+        "overall": 91,
         "position": "ST",
-        "imageUrl": "https://..."
+        "pace": 97,
+        "shooting": 90,
+        "passing": 81,
+        "dribbling": 92,
+        "defending": 37,
+        "physical": 76,
+        "club": "RMA",
+        "nation": "France",
+        "imageUrl": "https://...",
+        "clubImageUrl": "https://...",
+        "nationImageUrl": "https://...",
+        "sellPrice": 2500
       }
     }
   ],
@@ -419,6 +476,7 @@ Authorization: Bearer <token>
 **Headers:** `Authorization: Bearer <token>`
 
 **Response (200):**
+
 ```json
 {
   "totalCards": 100,
@@ -439,6 +497,7 @@ Authorization: Bearer <token>
 **Headers:** `Authorization: Bearer <token>`
 
 **Response (200):**
+
 ```json
 {
   "id": "uuid",
@@ -464,6 +523,7 @@ Authorization: Bearer <token>
 **Headers:** `Authorization: Bearer <token>`
 
 **Request Body:**
+
 ```json
 {
   "cardId": "uuid-cua-card",
@@ -471,12 +531,13 @@ Authorization: Bearer <token>
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| cardId | string (UUID) | Yes | ID của card |
-| quantity | number | Yes | Số lượng bán (>=1) |
+| Field    | Type          | Required | Description        |
+| -------- | ------------- | -------- | ------------------ |
+| cardId   | string (UUID) | Yes      | ID của card        |
+| quantity | number        | Yes      | Số lượng bán (>=1) |
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -504,6 +565,7 @@ Authorization: Bearer <token>
 | sortOrder | string | Thứ tự: `asc`, `desc` |
 
 **Response (200):**
+
 ```json
 {
   "data": [
@@ -534,6 +596,7 @@ Authorization: Bearer <token>
 ### GET /cards/:id - Lấy card chi tiết
 
 **Response (200):**
+
 ```json
 {
   "id": "uuid",
@@ -559,6 +622,7 @@ Authorization: Bearer <token>
 ### GET /health - Health check
 
 **Response (200):**
+
 ```json
 {
   "status": "ok",
@@ -569,6 +633,7 @@ Authorization: Bearer <token>
 ```
 
 **Response (503):**
+
 ```json
 {
   "status": "error",
@@ -584,6 +649,7 @@ Authorization: Bearer <token>
 ### Cấu trúc API Admin
 
 Tất cả API admin yêu cầu:
+
 - Header: `Authorization: Bearer <token>`
 - User phải có role `ADMIN`
 
@@ -599,6 +665,7 @@ Tất cả API admin yêu cầu:
 | search | string | Tìm kiếm theo email hoặc username |
 
 **Response (200):**
+
 ```json
 {
   "data": [
@@ -622,6 +689,7 @@ Tất cả API admin yêu cầu:
 ### GET /admin/users/:id - Lấy user chi tiết
 
 **Response (200):**
+
 ```json
 {
   "id": "uuid",
@@ -638,6 +706,7 @@ Tất cả API admin yêu cầu:
 ### PATCH /admin/users/:id - Cập nhật role user
 
 **Request Body:**
+
 ```json
 {
   "role": "ADMIN"
@@ -645,6 +714,7 @@ Tất cả API admin yêu cầu:
 ```
 
 **Response (200):**
+
 ```json
 {
   "id": "uuid",
@@ -660,6 +730,7 @@ Tất cả API admin yêu cầu:
 ### DELETE /admin/users/:id - Xóa mềm user
 
 **Response (200):**
+
 ```json
 {
   "message": "User deleted successfully"
@@ -671,6 +742,7 @@ Tất cả API admin yêu cầu:
 ### POST /admin/cards - Tạo card mới
 
 **Request Body:**
+
 ```json
 {
   "name": "Lionel Messi",
@@ -689,6 +761,7 @@ Tất cả API admin yêu cầu:
 ```
 
 **Response (201):**
+
 ```json
 {
   "id": "uuid",
@@ -703,6 +776,7 @@ Tất cả API admin yêu cầu:
 ### PATCH /admin/cards/:id - Cập nhật card
 
 **Request Body:** (các trường cần cập nhật)
+
 ```json
 {
   "name": "New Name",
@@ -711,6 +785,7 @@ Tất cả API admin yêu cầu:
 ```
 
 **Response (200):**
+
 ```json
 {
   "id": "uuid",
@@ -724,6 +799,7 @@ Tất cả API admin yêu cầu:
 ### DELETE /admin/cards/:id - Xóa card
 
 **Response (200):**
+
 ```json
 {
   "message": "Card deleted successfully"
@@ -735,6 +811,7 @@ Tất cả API admin yêu cầu:
 ### GET /admin/packs/:id/pool - Lấy pack pool
 
 **Response (200):**
+
 ```json
 {
   "packId": "uuid",
@@ -759,6 +836,7 @@ Tất cả API admin yêu cầu:
 ### POST /admin/packs - Tạo pack mới
 
 **Request Body:**
+
 ```json
 {
   "name": "Premium Pack",
@@ -768,6 +846,7 @@ Tất cả API admin yêu cầu:
 ```
 
 **Response (201):**
+
 ```json
 {
   "id": "uuid",
@@ -782,6 +861,7 @@ Tất cả API admin yêu cầu:
 ### POST /admin/packs/:id/pool - Thêm card vào pack pool
 
 **Request Body:**
+
 ```json
 {
   "cardId": "uuid-cua-card",
@@ -789,12 +869,13 @@ Tất cả API admin yêu cầu:
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| cardId | string (UUID) | Yes | ID của card |
-| weight | number | Yes | Trọng số xuất hiện |
+| Field  | Type          | Required | Description        |
+| ------ | ------------- | -------- | ------------------ |
+| cardId | string (UUID) | Yes      | ID của card        |
+| weight | number        | Yes      | Trọng số xuất hiện |
 
 **Response (200):**
+
 ```json
 {
   "message": "Card added to pack pool successfully"
@@ -806,6 +887,7 @@ Tất cả API admin yêu cầu:
 ### PATCH /admin/packs/:id/pool/:poolId - Cập nhật trọng số card trong pool
 
 **Request Body:**
+
 ```json
 {
   "weight": 20
@@ -813,6 +895,7 @@ Tất cả API admin yêu cầu:
 ```
 
 **Response (200):**
+
 ```json
 {
   "packId": "uuid",
@@ -826,6 +909,7 @@ Tất cả API admin yêu cầu:
 ### PATCH /admin/packs/:id - Cập nhật pack
 
 **Request Body:** (các trường cần cập nhật)
+
 ```json
 {
   "name": "New Pack Name",
@@ -834,6 +918,7 @@ Tất cả API admin yêu cầu:
 ```
 
 **Response (200):**
+
 ```json
 {
   "id": "uuid",
@@ -847,6 +932,7 @@ Tất cả API admin yêu cầu:
 ### DELETE /admin/packs/:packId/pool/:poolId - Xóa card khỏi pool
 
 **Response (200):**
+
 ```json
 {
   "message": "Card removed from pack pool successfully"
@@ -858,6 +944,7 @@ Tất cả API admin yêu cầu:
 ### DELETE /admin/packs/:id - Xóa pack
 
 **Response (200):**
+
 ```json
 {
   "message": "Pack deleted successfully"
@@ -879,6 +966,7 @@ Tất cả API admin yêu cầu:
 | userId | string (UUID) | Lọc theo user |
 
 **Response (200):**
+
 ```json
 {
   "data": [...],
@@ -893,6 +981,7 @@ Tất cả API admin yêu cầu:
 ### GET /admin/stats/dashboard - Lấy thống kê dashboard
 
 **Response (200):**
+
 ```json
 {
   "totalUsers": 100,
@@ -916,6 +1005,7 @@ Tất cả API admin yêu cầu:
 **Example:** `/admin/stats/revenue?from=2024-01-01&to=2024-12-31&granularity=day`
 
 **Response (200):**
+
 ```json
 {
   "data": [
@@ -934,6 +1024,7 @@ Tất cả API admin yêu cầu:
 ### GET /admin/stats/users/:id - Lấy thống kê của user
 
 **Response (200):**
+
 ```json
 {
   "userId": "uuid",
@@ -951,6 +1042,7 @@ Tất cả API admin yêu cầu:
 ## Error Responses
 
 **401 Unauthorized:**
+
 ```json
 {
   "statusCode": 401,
@@ -959,6 +1051,7 @@ Tất cả API admin yêu cầu:
 ```
 
 **403 Forbidden:**
+
 ```json
 {
   "statusCode": 403,
@@ -967,6 +1060,7 @@ Tất cả API admin yêu cầu:
 ```
 
 **404 Not Found:**
+
 ```json
 {
   "statusCode": 404,
@@ -975,6 +1069,7 @@ Tất cả API admin yêu cầu:
 ```
 
 **422 Unprocessable Entity:**
+
 ```json
 {
   "statusCode": 422,
@@ -984,6 +1079,7 @@ Tất cả API admin yêu cầu:
 ```
 
 **500 Internal Server Error:**
+
 ```json
 {
   "statusCode": 500,

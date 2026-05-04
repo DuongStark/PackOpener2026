@@ -112,14 +112,16 @@ model Cards {
 }
 
 model PackDefinition {
-  id            String         @id @default(uuid()) @db.Uuid
-  name          String         @unique
-  description   String?
-  price         Int
-  cardCount     Int            @map("card_count")
-  imageUrl      String?        @map("image_url")
-  isActive      Boolean        @default(true) @map("is_active")
-  createdAt     DateTime       @default(now()) @map("created_at")
+  id          String         @id @default(uuid()) @db.Uuid
+  name        String         @unique
+  description String?
+  price       Int
+  cardCount   Int            @map("card_count")
+  imageUrl    String?        @map("image_url")
+  tierCode    String         @default("PK-00") @map("tier_code")
+  subtitle    String         @default("Pack Series")
+  isActive    Boolean        @default(true) @map("is_active")
+  createdAt   DateTime       @default(now()) @map("created_at")
   packCardPools PackCardPool[]
   userPacks     UserPack[]
 

@@ -31,6 +31,14 @@ export class CreatePackDto {
   @IsOptional()
   imageUrl?: string;
 
+  @IsString()
+  @IsOptional()
+  tierCode?: string;
+
+  @IsString()
+  @IsOptional()
+  subtitle?: string;
+
   @IsBoolean()
   @IsOptional()
   isActive?: boolean = false;

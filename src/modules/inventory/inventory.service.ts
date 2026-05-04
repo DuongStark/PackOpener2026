@@ -73,8 +73,11 @@ export class InventoryService {
     ]);
 
     const formattedData = data.map((item) => ({
-      ...item.card,
+      id: item.id,
+      cardId: item.cardId,
       quantity: item.quantity,
+      status: Status.IN_INVENTORY,
+      card: item.card,
     }));
 
     return {
@@ -144,8 +147,11 @@ export class InventoryService {
     }
 
     const data = {
-      ...item.card,
+      id: item.id,
+      cardId: item.cardId,
       quantity: item.quantity,
+      status: Status.IN_INVENTORY,
+      card: item.card,
     };
 
     return data;

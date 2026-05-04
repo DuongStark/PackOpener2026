@@ -1165,6 +1165,8 @@ export const PackDefinitionScalarFieldEnum = {
   price: 'price',
   cardCount: 'cardCount',
   imageUrl: 'imageUrl',
+  tierCode: 'tierCode',
+  subtitle: 'subtitle',
   isActive: 'isActive',
   createdAt: 'createdAt'
 } as const

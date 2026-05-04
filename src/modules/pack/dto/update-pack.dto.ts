@@ -34,6 +34,14 @@ export class UpdatePackDto {
   @IsOptional()
   imageUrl?: string;
 
+  @IsString()
+  @IsOptional()
+  tierCode?: string;
+
+  @IsString()
+  @IsOptional()
+  subtitle?: string;
+
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;

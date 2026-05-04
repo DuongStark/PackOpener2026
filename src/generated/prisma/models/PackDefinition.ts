@@ -43,6 +43,8 @@ export type PackDefinitionMinAggregateOutputType = {
   price: number | null
   cardCount: number | null
   imageUrl: string | null
+  tierCode: string | null
+  subtitle: string | null
   isActive: boolean | null
   createdAt: Date | null
 }
@@ -54,6 +56,8 @@ export type PackDefinitionMaxAggregateOutputType = {
   price: number | null
   cardCount: number | null
   imageUrl: string | null
+  tierCode: string | null
+  subtitle: string | null
   isActive: boolean | null
   createdAt: Date | null
 }
@@ -65,6 +69,8 @@ export type PackDefinitionCountAggregateOutputType = {
   price: number
   cardCount: number
   imageUrl: number
+  tierCode: number
+  subtitle: number
   isActive: number
   createdAt: number
   _all: number
@@ -88,6 +94,8 @@ export type PackDefinitionMinAggregateInputType = {
   price?: true
   cardCount?: true
   imageUrl?: true
+  tierCode?: true
+  subtitle?: true
   isActive?: true
   createdAt?: true
 }
@@ -99,6 +107,8 @@ export type PackDefinitionMaxAggregateInputType = {
   price?: true
   cardCount?: true
   imageUrl?: true
+  tierCode?: true
+  subtitle?: true
   isActive?: true
   createdAt?: true
 }
@@ -110,6 +120,8 @@ export type PackDefinitionCountAggregateInputType = {
   price?: true
   cardCount?: true
   imageUrl?: true
+  tierCode?: true
+  subtitle?: true
   isActive?: true
   createdAt?: true
   _all?: true
@@ -208,6 +220,8 @@ export type PackDefinitionGroupByOutputType = {
   price: number
   cardCount: number
   imageUrl: string | null
+  tierCode: string
+  subtitle: string
   isActive: boolean
   createdAt: Date
   _count: PackDefinitionCountAggregateOutputType | null
@@ -242,6 +256,8 @@ export type PackDefinitionWhereInput = {
   price?: Prisma.IntFilter<"PackDefinition"> | number
   cardCount?: Prisma.IntFilter<"PackDefinition"> | number
   imageUrl?: Prisma.StringNullableFilter<"PackDefinition"> | string | null
+  tierCode?: Prisma.StringFilter<"PackDefinition"> | string
+  subtitle?: Prisma.StringFilter<"PackDefinition"> | string
   isActive?: Prisma.BoolFilter<"PackDefinition"> | boolean
   createdAt?: Prisma.DateTimeFilter<"PackDefinition"> | Date | string
   packCardPools?: Prisma.PackCardPoolListRelationFilter
@@ -255,6 +271,8 @@ export type PackDefinitionOrderByWithRelationInput = {
   price?: Prisma.SortOrder
   cardCount?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  tierCode?: Prisma.SortOrder
+  subtitle?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   packCardPools?: Prisma.PackCardPoolOrderByRelationAggregateInput
@@ -271,6 +289,8 @@ export type PackDefinitionWhereUniqueInput = Prisma.AtLeast<{
   price?: Prisma.IntFilter<"PackDefinition"> | number
   cardCount?: Prisma.IntFilter<"PackDefinition"> | number
   imageUrl?: Prisma.StringNullableFilter<"PackDefinition"> | string | null
+  tierCode?: Prisma.StringFilter<"PackDefinition"> | string
+  subtitle?: Prisma.StringFilter<"PackDefinition"> | string
   isActive?: Prisma.BoolFilter<"PackDefinition"> | boolean
   createdAt?: Prisma.DateTimeFilter<"PackDefinition"> | Date | string
   packCardPools?: Prisma.PackCardPoolListRelationFilter
@@ -284,6 +304,8 @@ export type PackDefinitionOrderByWithAggregationInput = {
   price?: Prisma.SortOrder
   cardCount?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  tierCode?: Prisma.SortOrder
+  subtitle?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.PackDefinitionCountOrderByAggregateInput
@@ -303,6 +325,8 @@ export type PackDefinitionScalarWhereWithAggregatesInput = {
   price?: Prisma.IntWithAggregatesFilter<"PackDefinition"> | number
   cardCount?: Prisma.IntWithAggregatesFilter<"PackDefinition"> | number
   imageUrl?: Prisma.StringNullableWithAggregatesFilter<"PackDefinition"> | string | null
+  tierCode?: Prisma.StringWithAggregatesFilter<"PackDefinition"> | string
+  subtitle?: Prisma.StringWithAggregatesFilter<"PackDefinition"> | string
   isActive?: Prisma.BoolWithAggregatesFilter<"PackDefinition"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PackDefinition"> | Date | string
 }
@@ -314,6 +338,8 @@ export type PackDefinitionCreateInput = {
   price: number
   cardCount: number
   imageUrl?: string | null
+  tierCode?: string
+  subtitle?: string
   isActive?: boolean
   createdAt?: Date | string
   packCardPools?: Prisma.PackCardPoolCreateNestedManyWithoutPackInput
@@ -327,6 +353,8 @@ export type PackDefinitionUncheckedCreateInput = {
   price: number
   cardCount: number
   imageUrl?: string | null
+  tierCode?: string
+  subtitle?: string
   isActive?: boolean
   createdAt?: Date | string
   packCardPools?: Prisma.PackCardPoolUncheckedCreateNestedManyWithoutPackInput
@@ -340,6 +368,8 @@ export type PackDefinitionUpdateInput = {
   price?: Prisma.IntFieldUpdateOperationsInput | number
   cardCount?: Prisma.IntFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tierCode?: Prisma.StringFieldUpdateOperationsInput | string
+  subtitle?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   packCardPools?: Prisma.PackCardPoolUpdateManyWithoutPackNestedInput
@@ -353,6 +383,8 @@ export type PackDefinitionUncheckedUpdateInput = {
   price?: Prisma.IntFieldUpdateOperationsInput | number
   cardCount?: Prisma.IntFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tierCode?: Prisma.StringFieldUpdateOperationsInput | string
+  subtitle?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   packCardPools?: Prisma.PackCardPoolUncheckedUpdateManyWithoutPackNestedInput
@@ -366,6 +398,8 @@ export type PackDefinitionCreateManyInput = {
   price: number
   cardCount: number
   imageUrl?: string | null
+  tierCode?: string
+  subtitle?: string
   isActive?: boolean
   createdAt?: Date | string
 }
@@ -377,6 +411,8 @@ export type PackDefinitionUpdateManyMutationInput = {
   price?: Prisma.IntFieldUpdateOperationsInput | number
   cardCount?: Prisma.IntFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tierCode?: Prisma.StringFieldUpdateOperationsInput | string
+  subtitle?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -388,6 +424,8 @@ export type PackDefinitionUncheckedUpdateManyInput = {
   price?: Prisma.IntFieldUpdateOperationsInput | number
   cardCount?: Prisma.IntFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tierCode?: Prisma.StringFieldUpdateOperationsInput | string
+  subtitle?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -399,6 +437,8 @@ export type PackDefinitionCountOrderByAggregateInput = {
   price?: Prisma.SortOrder
   cardCount?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
+  tierCode?: Prisma.SortOrder
+  subtitle?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -415,6 +455,8 @@ export type PackDefinitionMaxOrderByAggregateInput = {
   price?: Prisma.SortOrder
   cardCount?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
+  tierCode?: Prisma.SortOrder
+  subtitle?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -426,6 +468,8 @@ export type PackDefinitionMinOrderByAggregateInput = {
   price?: Prisma.SortOrder
   cardCount?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
+  tierCode?: Prisma.SortOrder
+  subtitle?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -475,6 +519,8 @@ export type PackDefinitionCreateWithoutPackCardPoolsInput = {
   price: number
   cardCount: number
   imageUrl?: string | null
+  tierCode?: string
+  subtitle?: string
   isActive?: boolean
   createdAt?: Date | string
   userPacks?: Prisma.UserPackCreateNestedManyWithoutPackInput
@@ -487,6 +533,8 @@ export type PackDefinitionUncheckedCreateWithoutPackCardPoolsInput = {
   price: number
   cardCount: number
   imageUrl?: string | null
+  tierCode?: string
+  subtitle?: string
   isActive?: boolean
   createdAt?: Date | string
   userPacks?: Prisma.UserPackUncheckedCreateNestedManyWithoutPackInput
@@ -515,6 +563,8 @@ export type PackDefinitionUpdateWithoutPackCardPoolsInput = {
   price?: Prisma.IntFieldUpdateOperationsInput | number
   cardCount?: Prisma.IntFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tierCode?: Prisma.StringFieldUpdateOperationsInput | string
+  subtitle?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userPacks?: Prisma.UserPackUpdateManyWithoutPackNestedInput
@@ -527,6 +577,8 @@ export type PackDefinitionUncheckedUpdateWithoutPackCardPoolsInput = {
   price?: Prisma.IntFieldUpdateOperationsInput | number
   cardCount?: Prisma.IntFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tierCode?: Prisma.StringFieldUpdateOperationsInput | string
+  subtitle?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userPacks?: Prisma.UserPackUncheckedUpdateManyWithoutPackNestedInput
@@ -539,6 +591,8 @@ export type PackDefinitionCreateWithoutUserPacksInput = {
   price: number
   cardCount: number
   imageUrl?: string | null
+  tierCode?: string
+  subtitle?: string
   isActive?: boolean
   createdAt?: Date | string
   packCardPools?: Prisma.PackCardPoolCreateNestedManyWithoutPackInput
@@ -551,6 +605,8 @@ export type PackDefinitionUncheckedCreateWithoutUserPacksInput = {
   price: number
   cardCount: number
   imageUrl?: string | null
+  tierCode?: string
+  subtitle?: string
   isActive?: boolean
   createdAt?: Date | string
   packCardPools?: Prisma.PackCardPoolUncheckedCreateNestedManyWithoutPackInput
@@ -579,6 +635,8 @@ export type PackDefinitionUpdateWithoutUserPacksInput = {
   price?: Prisma.IntFieldUpdateOperationsInput | number
   cardCount?: Prisma.IntFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tierCode?: Prisma.StringFieldUpdateOperationsInput | string
+  subtitle?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   packCardPools?: Prisma.PackCardPoolUpdateManyWithoutPackNestedInput
@@ -591,6 +649,8 @@ export type PackDefinitionUncheckedUpdateWithoutUserPacksInput = {
   price?: Prisma.IntFieldUpdateOperationsInput | number
   cardCount?: Prisma.IntFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tierCode?: Prisma.StringFieldUpdateOperationsInput | string
+  subtitle?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   packCardPools?: Prisma.PackCardPoolUncheckedUpdateManyWithoutPackNestedInput
@@ -643,6 +703,8 @@ export type PackDefinitionSelect<ExtArgs extends runtime.Types.Extensions.Intern
   price?: boolean
   cardCount?: boolean
   imageUrl?: boolean
+  tierCode?: boolean
+  subtitle?: boolean
   isActive?: boolean
   createdAt?: boolean
   packCardPools?: boolean | Prisma.PackDefinition$packCardPoolsArgs<ExtArgs>
@@ -657,6 +719,8 @@ export type PackDefinitionSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   price?: boolean
   cardCount?: boolean
   imageUrl?: boolean
+  tierCode?: boolean
+  subtitle?: boolean
   isActive?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["packDefinition"]>
@@ -668,6 +732,8 @@ export type PackDefinitionSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   price?: boolean
   cardCount?: boolean
   imageUrl?: boolean
+  tierCode?: boolean
+  subtitle?: boolean
   isActive?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["packDefinition"]>
@@ -679,11 +745,13 @@ export type PackDefinitionSelectScalar = {
   price?: boolean
   cardCount?: boolean
   imageUrl?: boolean
+  tierCode?: boolean
+  subtitle?: boolean
   isActive?: boolean
   createdAt?: boolean
 }
 
-export type PackDefinitionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "price" | "cardCount" | "imageUrl" | "isActive" | "createdAt", ExtArgs["result"]["packDefinition"]>
+export type PackDefinitionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "price" | "cardCount" | "imageUrl" | "tierCode" | "subtitle" | "isActive" | "createdAt", ExtArgs["result"]["packDefinition"]>
 export type PackDefinitionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   packCardPools?: boolean | Prisma.PackDefinition$packCardPoolsArgs<ExtArgs>
   userPacks?: boolean | Prisma.PackDefinition$userPacksArgs<ExtArgs>
@@ -705,6 +773,8 @@ export type $PackDefinitionPayload<ExtArgs extends runtime.Types.Extensions.Inte
     price: number
     cardCount: number
     imageUrl: string | null
+    tierCode: string
+    subtitle: string
     isActive: boolean
     createdAt: Date
   }, ExtArgs["result"]["packDefinition"]>
@@ -1138,6 +1208,8 @@ export interface PackDefinitionFieldRefs {
   readonly price: Prisma.FieldRef<"PackDefinition", 'Int'>
   readonly cardCount: Prisma.FieldRef<"PackDefinition", 'Int'>
   readonly imageUrl: Prisma.FieldRef<"PackDefinition", 'String'>
+  readonly tierCode: Prisma.FieldRef<"PackDefinition", 'String'>
+  readonly subtitle: Prisma.FieldRef<"PackDefinition", 'String'>
   readonly isActive: Prisma.FieldRef<"PackDefinition", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"PackDefinition", 'DateTime'>
 }

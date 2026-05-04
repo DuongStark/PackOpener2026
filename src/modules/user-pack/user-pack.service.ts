@@ -165,11 +165,23 @@ export class UserPackService {
   private formatUserPack(item: any, includeCards?: boolean) {
     const base = {
       id: item.id,
+      userId: item.userId,
       packId: item.packId,
-      packName: item.pack.name,
       status: item.status,
+      createdAt: item.purchasedAt,
       purchasedAt: item.purchasedAt,
-      ...(item.openedAt && { openedAt: item.openedAt }),
+      openedAt: item.openedAt,
+      pack: {
+        id: item.pack.id,
+        name: item.pack.name,
+        price: item.pack.price,
+        description: item.pack.description,
+        imageUrl: item.pack.imageUrl,
+        cardCount: item.pack.cardCount,
+        tierCode: item.pack.tierCode,
+        subtitle: item.pack.subtitle,
+        oddsTeaser: item.pack.description ?? '',
+      },
     };
 
     // Không includeCards hoặc pack chưa mở → trả base
@@ -208,19 +220,46 @@ export class UserPackService {
     if (userPack.status === PackStatus.PENDING) {
       return {
         id: userPack.id,
-        packName: userPack.pack.name,
+        userId: userPack.userId,
+        packId: userPack.packId,
         status: userPack.status,
+        createdAt: userPack.purchasedAt,
         purchasedAt: userPack.purchasedAt,
+        openedAt: null,
+        pack: {
+          id: userPack.pack.id,
+          name: userPack.pack.name,
+          price: userPack.pack.price,
+          description: userPack.pack.description,
+          imageUrl: userPack.pack.imageUrl,
+          cardCount: userPack.pack.cardCount,
+          tierCode: userPack.pack.tierCode,
+          subtitle: userPack.pack.subtitle,
+          oddsTeaser: userPack.pack.description ?? '',
+        },
       };
     }
 
     // OPENED trả kèm cards từ snapshot
     return {
       id: userPack.id,
-      packName: userPack.pack.name,
+      userId: userPack.userId,
+      packId: userPack.packId,
       status: userPack.status,
+      createdAt: userPack.purchasedAt,
       purchasedAt: userPack.purchasedAt,
       openedAt: userPack.openedAt,
+      pack: {
+        id: userPack.pack.id,
+        name: userPack.pack.name,
+        price: userPack.pack.price,
+        description: userPack.pack.description,
+        imageUrl: userPack.pack.imageUrl,
+        cardCount: userPack.pack.cardCount,
+        tierCode: userPack.pack.tierCode,
+        subtitle: userPack.pack.subtitle,
+        oddsTeaser: userPack.pack.description ?? '',
+      },
       cards: userPack.packOpeningResults.map((r: any) => {
         const snapshot = r.cardSnapshot as CardSnapshot;
         return {

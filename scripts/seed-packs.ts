@@ -32,6 +32,8 @@ type PackSeed = {
   description: string;
   price: number;
   cardCount: number;
+  tierCode: string;
+  subtitle: string;
   imageUrl?: string | null;
   isActive?: boolean;
   pool: PoolRule[];
@@ -43,6 +45,8 @@ const PACKS: PackSeed[] = [
     description: 'A small free pack for players who need a way back in.',
     price: 0,
     cardCount: 3,
+    tierCode: 'FR-01',
+    subtitle: 'Daily Support',
     pool: [
       {
         label: 'Bronze common only',
@@ -56,10 +60,24 @@ const PACKS: PackSeed[] = [
     description: 'A beginner-friendly pack with low-tier players.',
     price: 40,
     cardCount: 5,
+    tierCode: 'ST-02',
+    subtitle: 'First Touch Series',
     pool: [
-      { label: 'Bronze common', share: 50, where: { rarity: Rarity.BRONZE_COMMON } },
-      { label: 'Bronze rare', share: 35, where: { rarity: Rarity.BRONZE_RARE } },
-      { label: 'Silver common', share: 15, where: { rarity: Rarity.SILVER_COMMON } },
+      {
+        label: 'Bronze common',
+        share: 50,
+        where: { rarity: Rarity.BRONZE_COMMON },
+      },
+      {
+        label: 'Bronze rare',
+        share: 35,
+        where: { rarity: Rarity.BRONZE_RARE },
+      },
+      {
+        label: 'Silver common',
+        share: 15,
+        where: { rarity: Rarity.SILVER_COMMON },
+      },
     ],
   },
   {
@@ -67,9 +85,19 @@ const PACKS: PackSeed[] = [
     description: 'Entry-level bronze player pack.',
     price: 25,
     cardCount: 5,
+    tierCode: 'BP-03',
+    subtitle: 'Common Series',
     pool: [
-      { label: 'Bronze common', share: 80, where: { rarity: Rarity.BRONZE_COMMON } },
-      { label: 'Bronze rare', share: 20, where: { rarity: Rarity.BRONZE_RARE } },
+      {
+        label: 'Bronze common',
+        share: 80,
+        where: { rarity: Rarity.BRONZE_COMMON },
+      },
+      {
+        label: 'Bronze rare',
+        share: 20,
+        where: { rarity: Rarity.BRONZE_RARE },
+      },
     ],
   },
   {
@@ -77,9 +105,19 @@ const PACKS: PackSeed[] = [
     description: 'Upgraded bronze pack with a small silver chance.',
     price: 60,
     cardCount: 5,
+    tierCode: 'BP-04',
+    subtitle: 'Upgrade Series',
     pool: [
-      { label: 'Bronze rare', share: 80, where: { rarity: Rarity.BRONZE_RARE } },
-      { label: 'Silver common', share: 20, where: { rarity: Rarity.SILVER_COMMON } },
+      {
+        label: 'Bronze rare',
+        share: 80,
+        where: { rarity: Rarity.BRONZE_RARE },
+      },
+      {
+        label: 'Silver common',
+        share: 20,
+        where: { rarity: Rarity.SILVER_COMMON },
+      },
     ],
   },
   {
@@ -87,9 +125,19 @@ const PACKS: PackSeed[] = [
     description: 'Standard silver tier pack.',
     price: 120,
     cardCount: 5,
+    tierCode: 'SP-05',
+    subtitle: 'Standard Series',
     pool: [
-      { label: 'Silver common', share: 75, where: { rarity: Rarity.SILVER_COMMON } },
-      { label: 'Silver rare', share: 25, where: { rarity: Rarity.SILVER_RARE } },
+      {
+        label: 'Silver common',
+        share: 75,
+        where: { rarity: Rarity.SILVER_COMMON },
+      },
+      {
+        label: 'Silver rare',
+        share: 25,
+        where: { rarity: Rarity.SILVER_RARE },
+      },
     ],
   },
   {
@@ -97,9 +145,19 @@ const PACKS: PackSeed[] = [
     description: 'Silver pack with a small gold common chance.',
     price: 300,
     cardCount: 5,
+    tierCode: 'SP-06',
+    subtitle: 'Advanced Series',
     pool: [
-      { label: 'Silver rare', share: 85, where: { rarity: Rarity.SILVER_RARE } },
-      { label: 'Gold common', share: 15, where: { rarity: Rarity.GOLD_COMMON } },
+      {
+        label: 'Silver rare',
+        share: 85,
+        where: { rarity: Rarity.SILVER_RARE },
+      },
+      {
+        label: 'Gold common',
+        share: 15,
+        where: { rarity: Rarity.GOLD_COMMON },
+      },
     ],
   },
   {
@@ -107,8 +165,14 @@ const PACKS: PackSeed[] = [
     description: 'Main gold tier pack.',
     price: 950,
     cardCount: 5,
+    tierCode: 'GP-07',
+    subtitle: 'Gold Series',
     pool: [
-      { label: 'Gold common', share: 85, where: { rarity: Rarity.GOLD_COMMON } },
+      {
+        label: 'Gold common',
+        share: 85,
+        where: { rarity: Rarity.GOLD_COMMON },
+      },
       { label: 'Gold rare', share: 15, where: { rarity: Rarity.GOLD_RARE } },
     ],
   },
@@ -117,8 +181,14 @@ const PACKS: PackSeed[] = [
     description: 'More cards and better gold odds.',
     price: 1900,
     cardCount: 7,
+    tierCode: 'PG-08',
+    subtitle: 'Value Series',
     pool: [
-      { label: 'Gold common', share: 65, where: { rarity: Rarity.GOLD_COMMON } },
+      {
+        label: 'Gold common',
+        share: 65,
+        where: { rarity: Rarity.GOLD_COMMON },
+      },
       { label: 'Gold rare', share: 30, where: { rarity: Rarity.GOLD_RARE } },
       { label: 'Gold epic', share: 5, where: { rarity: Rarity.GOLD_EPIC } },
     ],
@@ -128,6 +198,8 @@ const PACKS: PackSeed[] = [
     description: 'Focused rare gold and epic gold pack.',
     price: 2600,
     cardCount: 5,
+    tierCode: 'RG-09',
+    subtitle: 'Rare Series',
     pool: [
       { label: 'Gold rare', share: 90, where: { rarity: Rarity.GOLD_RARE } },
       { label: 'Gold epic', share: 10, where: { rarity: Rarity.GOLD_EPIC } },
@@ -135,14 +207,33 @@ const PACKS: PackSeed[] = [
   },
   {
     name: 'Mixed Value Pack',
-    description: 'A larger mixed pack with bronze, silver, and low gold players.',
+    description:
+      'A larger mixed pack with bronze, silver, and low gold players.',
     price: 375,
     cardCount: 8,
+    tierCode: 'MV-10',
+    subtitle: 'Mixed Value Series',
     pool: [
-      { label: 'Bronze rare', share: 35, where: { rarity: Rarity.BRONZE_RARE } },
-      { label: 'Silver common', share: 35, where: { rarity: Rarity.SILVER_COMMON } },
-      { label: 'Silver rare', share: 20, where: { rarity: Rarity.SILVER_RARE } },
-      { label: 'Gold common', share: 10, where: { rarity: Rarity.GOLD_COMMON } },
+      {
+        label: 'Bronze rare',
+        share: 35,
+        where: { rarity: Rarity.BRONZE_RARE },
+      },
+      {
+        label: 'Silver common',
+        share: 35,
+        where: { rarity: Rarity.SILVER_COMMON },
+      },
+      {
+        label: 'Silver rare',
+        share: 20,
+        where: { rarity: Rarity.SILVER_RARE },
+      },
+      {
+        label: 'Gold common',
+        share: 10,
+        where: { rarity: Rarity.GOLD_COMMON },
+      },
     ],
   },
   {
@@ -150,6 +241,8 @@ const PACKS: PackSeed[] = [
     description: 'Specialist pack for goalkeepers.',
     price: 150,
     cardCount: 3,
+    tierCode: 'GK-11',
+    subtitle: 'Specialist Series',
     pool: [
       {
         label: 'Goalkeepers 65+',
@@ -163,12 +256,16 @@ const PACKS: PackSeed[] = [
     description: 'Position pack for defenders and defensive midfielders.',
     price: 550,
     cardCount: 5,
+    tierCode: 'DF-12',
+    subtitle: 'Tactical Series',
     pool: [
       {
         label: 'Defenders 70+',
         share: 100,
         where: {
-          position: { in: [Position.CB, Position.LB, Position.RB, Position.CDM] },
+          position: {
+            in: [Position.CB, Position.LB, Position.RB, Position.CDM],
+          },
           overall: { gte: 70 },
         },
       },
@@ -179,13 +276,21 @@ const PACKS: PackSeed[] = [
     description: 'Position pack for midfielders.',
     price: 700,
     cardCount: 5,
+    tierCode: 'MF-13',
+    subtitle: 'Control Series',
     pool: [
       {
         label: 'Midfielders 70+',
         share: 100,
         where: {
           position: {
-            in: [Position.CM, Position.CDM, Position.CAM, Position.LM, Position.RM],
+            in: [
+              Position.CM,
+              Position.CDM,
+              Position.CAM,
+              Position.LM,
+              Position.RM,
+            ],
           },
           overall: { gte: 70 },
         },
@@ -197,12 +302,16 @@ const PACKS: PackSeed[] = [
     description: 'Position pack for forwards and attacking midfielders.',
     price: 800,
     cardCount: 5,
+    tierCode: 'FW-14',
+    subtitle: 'Attack Series',
     pool: [
       {
         label: 'Forwards 70+',
         share: 100,
         where: {
-          position: { in: [Position.ST, Position.LW, Position.RW, Position.CAM] },
+          position: {
+            in: [Position.ST, Position.LW, Position.RW, Position.CAM],
+          },
           overall: { gte: 70 },
         },
       },
@@ -213,6 +322,8 @@ const PACKS: PackSeed[] = [
     description: 'High-tier pack for strong gold players.',
     price: 2800,
     cardCount: 5,
+    tierCode: 'EL-15',
+    subtitle: 'High Tier Series',
     pool: [
       {
         label: 'Elite 80-87',
@@ -226,11 +337,21 @@ const PACKS: PackSeed[] = [
     description: 'The top-end pack with the best player odds.',
     price: 7500,
     cardCount: 10,
+    tierCode: 'UT-16',
+    subtitle: 'Legendary Series',
     pool: [
       { label: 'Gold rare', share: 70, where: { rarity: Rarity.GOLD_RARE } },
       { label: 'Gold epic', share: 25, where: { rarity: Rarity.GOLD_EPIC } },
-      { label: 'Diamond common', share: 4, where: { rarity: Rarity.DIAMOND_COMMON } },
-      { label: 'Diamond rare', share: 1, where: { rarity: Rarity.DIAMOND_RARE } },
+      {
+        label: 'Diamond common',
+        share: 4,
+        where: { rarity: Rarity.DIAMOND_COMMON },
+      },
+      {
+        label: 'Diamond rare',
+        share: 1,
+        where: { rarity: Rarity.DIAMOND_RARE },
+      },
     ],
   },
 ];
@@ -266,7 +387,9 @@ async function createPoolEntries(packId: string, rules: PoolRule[]) {
       mergePoolWeight(poolWeights, card.id, weightPerCard);
     }
 
-    summaries.push(`${rule.label}: ${cards.length} cards x weight ${weightPerCard}`);
+    summaries.push(
+      `${rule.label}: ${cards.length} cards x weight ${weightPerCard}`,
+    );
   }
 
   const entries = [...poolWeights.entries()].map(([cardId, weight]) => ({
@@ -294,6 +417,8 @@ async function syncPack(seed: PackSeed) {
       price: seed.price,
       cardCount: seed.cardCount,
       imageUrl: seed.imageUrl ?? null,
+      tierCode: seed.tierCode,
+      subtitle: seed.subtitle,
       isActive: seed.isActive ?? true,
     },
     update: {
@@ -301,6 +426,8 @@ async function syncPack(seed: PackSeed) {
       price: seed.price,
       cardCount: seed.cardCount,
       imageUrl: seed.imageUrl ?? null,
+      tierCode: seed.tierCode,
+      subtitle: seed.subtitle,
       isActive: seed.isActive ?? true,
     },
   });

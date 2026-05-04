@@ -15,6 +15,18 @@ import {
   updateWeightResponseDto,
 } from './dto/updatePool.dto.js';
 
+const RARITY_RANK: Record<string, number> = {
+  BRONZE_COMMON: 1,
+  BRONZE_RARE: 2,
+  SILVER_COMMON: 3,
+  SILVER_RARE: 4,
+  GOLD_COMMON: 5,
+  GOLD_RARE: 6,
+  GOLD_EPIC: 7,
+  DIAMOND_COMMON: 8,
+  DIAMOND_RARE: 9,
+};
+
 @Injectable()
 export class PackService {
   constructor(private readonly prisma: PrismaService) {}
@@ -28,13 +40,51 @@ export class PackService {
       this.prisma.packDefinition.findMany({
         skip,
         take: limit,
+        include: {
+          packCardPools: {
+            select: {
+              card: {
+                select: {
+                  rarity: true,
+                },
+              },
+            },
+          },
+        },
         orderBy: {
           price: 'asc',
         },
       }),
       this.prisma.packDefinition.count(),
     ]);
-    return { data: data, total: total };
+
+    const formattedData = data.map((pack) => {
+      const rarityFocus = Array.from(
+        new Set(pack.packCardPools.map((pool) => pool.card.rarity)),
+      )
+        .sort(
+          (left, right) => (RARITY_RANK[right] ?? 0) - (RARITY_RANK[left] ?? 0),
+        )
+        .slice(0, 2)
+        .sort(
+          (left, right) => (RARITY_RANK[left] ?? 0) - (RARITY_RANK[right] ?? 0),
+        );
+
+      return {
+        id: pack.id,
+        name: pack.name,
+        price: pack.price,
+        description: pack.description,
+        imageUrl: pack.imageUrl,
+        cardCount: pack.cardCount,
+        tierCode: pack.tierCode,
+        subtitle: pack.subtitle,
+        oddsTeaser: pack.description ?? '',
+        rarityFocus,
+      };
+    });
+
+    return { data: formattedData, total: total };
   }
 
   async findOne(id: string): Promise<any> {
@@ -115,6 +165,8 @@ export class PackService {
         price: data.price,
         cardCount: data.cardCount,
         imageUrl: data.imageUrl,
+        tierCode: data.tierCode ?? 'PK-00',
+        subtitle: data.subtitle ?? 'Pack Series',
         isActive: data.isActive ?? false,
       },
     });
@@ -159,6 +211,8 @@ export class PackService {
         price: data.price,
         cardCount: data.cardCount,
         imageUrl: data.imageUrl,
+        tierCode: data.tierCode,
+        subtitle: data.subtitle,
         isActive: data.isActive,
       },
     });
@@ -345,6 +399,5 @@ export class PackService {
     await this.prisma.packCardPool.delete({
       where: { id: poolId },
     });
-
   }
 }
