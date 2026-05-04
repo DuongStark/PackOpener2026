@@ -69,7 +69,7 @@ model User {
   email          String           @unique
   passwordHash   String           @map("password_hash")
   username       String           @unique
-  balance        Int              @default(1000)
+  balance        Int              @default(300)
   role           Role             @default(USER)
   isActive       Boolean          @default(true) @map("is_active")
   deletedAt      DateTime?        @map("deleted_at")

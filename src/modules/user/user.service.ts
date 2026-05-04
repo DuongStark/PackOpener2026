@@ -15,6 +15,8 @@ import { TransactionService } from '../transaction/transaction.service.js';
 
 @Injectable()
 export class UserService {
+  private readonly initialUserBalance = 300;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly transactionService: TransactionService,
@@ -48,6 +50,7 @@ export class UserService {
             email: createUserDto.email,
             passwordHash,
             username: createUserDto.username,
+            balance: this.initialUserBalance,
             role: Role.USER,
             isActive: true,
             createdAt: new Date(),
@@ -59,9 +62,9 @@ export class UserService {
           data: {
             userId: user.id,
             type: Type.INITIAL_CREDIT,
-            amount: +1000,
+            amount: this.initialUserBalance,
             balanceBefore: 0,
-            balanceAfter: 1000,
+            balanceAfter: this.initialUserBalance,
             description: 'Initial credit for new user',
           },
         });
