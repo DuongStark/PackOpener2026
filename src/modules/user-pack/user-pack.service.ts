@@ -14,6 +14,7 @@ import { Pack } from '../pack/entities/pack.entity.js';
 import { getUserPacksDto } from './dto/get-userpack.dto.js';
 import { OpenPackResponseDto } from './dto/open-pack.dto.js';
 import { RandomService } from '../../core/random/random.service.js';
+import { PurchaseMode } from './dto/buy-pack.dto.js';
 
 interface buyPackResult {
   userPackId: string;
@@ -21,6 +22,8 @@ interface buyPackResult {
   price: number;
   newBalance: number;
   status: string;
+  openedAt?: string;
+  cards?: Array<Record<string, unknown>>;
 }
 
 interface CardSnapshot {
@@ -38,6 +41,8 @@ interface CardSnapshot {
   dribbling?: number;
   defending?: number;
   physical?: number;
+  clubImageUrl?: string;
+  nationImageUrl?: string;
 }
 
 const FREE_PACK_COOLDOWN_MS = 24 * 60 * 60 * 1000;
@@ -53,7 +58,11 @@ export class UserPackService {
     private readonly randomService: RandomService,
   ) {}
 
-  async buyPack(packId: string, userId: string): Promise<buyPackResult> {
+  async buyPack(
+    packId: string,
+    userId: string,
+    mode: PurchaseMode = PurchaseMode.SEND_INVENTORY,
+  ): Promise<buyPackResult> {
     const [price, name] = await this.packService.findPackPrices(packId);
     if (price === 0) {
       await this.assertFreePackAvailable(packId, userId);
@@ -83,13 +92,25 @@ export class UserPackService {
       },
     );
 
-    return {
+    const purchaseResult: buyPackResult = {
       userPackId,
       packName: name,
       price,
       newBalance,
       status: PackStatus.PENDING,
     };
+
+    if (mode === PurchaseMode.OPEN_NOW) {
+      const opened = await this.openPack(userPackId, userId);
+      return {
+        ...purchaseResult,
+        status: PackStatus.OPENED,
+        openedAt: opened.openedAt,
+        cards: opened.cards,
+      };
+    }
+
+    return purchaseResult;
   }
 
   private async assertFreePackAvailable(
@@ -318,8 +339,11 @@ export class UserPackService {
             physical: snap.physical,
             position: snap.position,
             club: snap.club,
-            country: snap.nation,
+            nation: snap.nation,
             imageUrl: snap.imageUrl,
+            clubImageUrl: snap.clubImageUrl,
+            nationImageUrl: snap.nationImageUrl,
+            sellPrice: snap.sellPrice,
           };
         }),
       };
@@ -369,6 +393,8 @@ export class UserPackService {
               sellPrice: card.sellPrice,
               club: card.club || '',
               nation: card.nation || '',
+              clubImageUrl: card.clubImageUrl || '',
+              nationImageUrl: card.nationImageUrl || '',
               pace: card.pace || 0,
               shooting: card.shooting || 0,
               passing: card.passing || 0,
@@ -435,6 +461,9 @@ export class UserPackService {
           club: snap.club ?? '',
           nation: snap.nation ?? '',
           imageUrl: snap.imageUrl,
+          clubImageUrl: snap.clubImageUrl ?? '',
+          nationImageUrl: snap.nationImageUrl ?? '',
+          sellPrice: snap.sellPrice,
         };
       }),
     };

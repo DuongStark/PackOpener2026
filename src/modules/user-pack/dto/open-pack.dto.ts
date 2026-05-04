@@ -12,6 +12,10 @@ export class CardResultDto {
   club?: string;
   nation?: string;
   imageUrl?: string | null;
+  clubImageUrl?: string;
+  nationImageUrl?: string;
+  sellPrice?: number;
+  physical?: number;
 }
 
 export class OpenPackResponseDto {

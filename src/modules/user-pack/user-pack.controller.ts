@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
@@ -13,6 +14,7 @@ import { PaginatedOutput } from '../../common/constants/global.dto.js';
 import { Status } from '../../generated/prisma/enums.js';
 import { getUserPacksDto } from './dto/get-userpack.dto.js';
 import { OpenPackResponseDto } from './dto/open-pack.dto.js';
+import { BuyPackDto } from './dto/buy-pack.dto.js';
 
 interface buyPackResult {
   userPackId: string;
@@ -20,6 +22,8 @@ interface buyPackResult {
   price: number;
   newBalance: number;
   status: string;
+  openedAt?: string;
+  cards?: unknown[];
 }
 
 @Controller()
@@ -43,8 +47,12 @@ export class UserPackController {
 
   @Post('packs/:id/buy')
   @UseGuards(JwtAuthGuard)
-  async buyPack(@Param('id') id: string, @Req() req): Promise<buyPackResult> {
-    return this.userPackService.buyPack(id, req.user.id);
+  async buyPack(
+    @Param('id') id: string,
+    @Req() req,
+    @Body() payload: BuyPackDto,
+  ): Promise<buyPackResult> {
+    return this.userPackService.buyPack(id, req.user.id, payload?.mode);
   }
 
   @Post('user-packs/:id/open')
