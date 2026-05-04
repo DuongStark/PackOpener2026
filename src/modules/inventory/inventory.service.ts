@@ -10,6 +10,7 @@ import { PrismaService } from '../../core/database/prisma.service.js';
 import { GetInventoryDto } from './dto/get-inventory.dto.js';
 import { PaginatedOutput } from '../../common/constants/global.dto.js';
 import { SellCardDto } from './dto/sell-card.dto.js';
+import { SellBulkDto } from './dto/sell-bulk.dto.js';
 import { Status, Type } from '../../generated/prisma/enums.js';
 import { TransactionService } from '../transaction/transaction.service.js';
 import { UserService } from '../user/user.service.js';
@@ -74,6 +75,7 @@ export class InventoryService {
 
     const formattedData = data.map((item) => ({
       id: item.id,
+      userId: item.userId,
       cardId: item.cardId,
       quantity: item.quantity,
       status: Status.IN_INVENTORY,
@@ -149,6 +151,7 @@ export class InventoryService {
     const data = {
       id: item.id,
       cardId: item.cardId,
+      userId: item.userId,
       quantity: item.quantity,
       status: Status.IN_INVENTORY,
       card: item.card,
@@ -262,6 +265,113 @@ export class InventoryService {
         quantitySold: quantity,
         coinEarned,
         newBalance: balanceBefore + coinEarned,
+      };
+    });
+
+    return data;
+  }
+
+  async sellBulkInventoryItems(body: SellBulkDto, userId: string) {
+    const data = await this.prisma.$transaction(async (prisma) => {
+      let totalEarned = 0;
+      const soldItems: any[] = [];
+
+      for (const item of body.items) {
+        const { cardId, quantity } = item;
+        const inventoryItem = await prisma.inventory.findFirst({
+          where: { userId, cardId },
+          include: { card: true },
+        });
+
+        if (!inventoryItem) {
+          throw new NotFoundException(`You do not own the card ${cardId}`);
+        }
+        if (inventoryItem.quantity < 1) {
+          throw new BadRequestException(
+            `quantity must be at least 1 for card ${cardId}`,
+          );
+        }
+        if (inventoryItem.quantity < quantity) {
+          throw new ConflictException({
+            statusCode: 409,
+            message: `Insufficient quantity for card ${cardId}`,
+            owned: inventoryItem.quantity,
+            requested: quantity,
+          });
+        }
+
+        const coinEarned = inventoryItem.card.sellPrice * quantity;
+        totalEarned += coinEarned;
+
+        const itemsToSell = await prisma.inventoryItems.findMany({
+          where: {
+            userId,
+            cardId,
+            status: Status.IN_INVENTORY,
+          },
+          orderBy: {
+            acquiredAt: 'asc',
+          },
+          take: quantity,
+          select: { id: true },
+        });
+
+        await prisma.inventoryItems.updateMany({
+          where: {
+            id: { in: itemsToSell.map((i) => i.id) },
+          },
+          data: {
+            status: Status.SOLD,
+          },
+        });
+
+        await prisma.inventory.update({
+          where: {
+            userId_cardId: { userId, cardId },
+          },
+          data: {
+            quantity: { decrement: quantity },
+          },
+        });
+
+        soldItems.push({
+          cardId,
+          soldQuantity: quantity,
+          earned: coinEarned,
+        });
+      }
+
+      await prisma.inventory.deleteMany({
+        where: { userId, quantity: 0 },
+      });
+
+      const balanceBefore = await this.userService.getUserBalance(userId);
+      const balanceAfter = balanceBefore + totalEarned;
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: { balance: { increment: totalEarned } },
+      });
+
+      const createTransactionDto = {
+        userId,
+        type: Type.SELL_CARD,
+        amount: totalEarned,
+        balanceBefore,
+        balanceAfter,
+        description: `Sold ${soldItems.reduce(
+          (sum, i) => sum + i.soldQuantity,
+          0,
+        )} cards in bulk for ${totalEarned} coins`,
+      };
+
+      await this.transactionService.create(createTransactionDto, null, prisma);
+
+      return {
+        success: true,
+        soldItems,
+        totalEarned,
+        newBalance: balanceAfter,
       };
     });
 

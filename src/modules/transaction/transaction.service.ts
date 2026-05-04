@@ -15,8 +15,8 @@ export class TransactionService {
 
   async create(
     createTransactionDto: CreateTransactionDto,
-    relatedEntity: string,
-    tx: Prisma.TransactionClient,
+    relatedEntity: string | null = null,
+    tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Transaction> {
     return await tx.transaction.create({
       data: {

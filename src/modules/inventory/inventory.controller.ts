@@ -16,6 +16,7 @@ import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard.js';
 import { GetInventoryDto } from './dto/get-inventory.dto.js';
 import { SellCardDto } from './dto/sell-card.dto.js';
+import { SellBulkDto } from './dto/sell-bulk.dto.js';
 
 @Controller('inventory')
 export class InventoryController {
@@ -43,5 +44,11 @@ export class InventoryController {
   @UseGuards(JwtAuthGuard)
   sellInventoryItem(@Body() body: SellCardDto, @Req() req) {
     return this.inventoryService.sellInventoryItem(body, req.user.id);
+  }
+
+  @Post('/sell-bulk')
+  @UseGuards(JwtAuthGuard)
+  sellBulkInventoryItems(@Body() body: SellBulkDto, @Req() req) {
+    return this.inventoryService.sellBulkInventoryItems(body, req.user.id);
   }
 }
