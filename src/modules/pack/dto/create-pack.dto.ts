@@ -42,4 +42,12 @@ export class CreatePackDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean = false;
+
+  @IsBoolean()
+  @IsOptional()
+  isFeatured?: boolean = false;
+
+  @IsBoolean()
+  @IsOptional()
+  isLimited?: boolean = false;
 }

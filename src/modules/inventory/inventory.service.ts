@@ -276,33 +276,33 @@ export class InventoryService {
     const data = await this.prisma.$transaction(async (prisma) => {
       let totalEarned = 0;
       const soldItems: any[] = [];
+      let totalSoldQuantity = 0;
 
       for (const item of body.items) {
-        const { cardId, quantity } = item;
-        const inventoryItem = await prisma.inventory.findFirst({
-          where: { userId, cardId },
+        const { inventoryId, quantity } = item;
+        const inventoryItem = await prisma.inventory.findUnique({
+          where: { id: inventoryId },
           include: { card: true },
         });
 
-        if (!inventoryItem) {
-          throw new NotFoundException(`You do not own the card ${cardId}`);
-        }
-        if (inventoryItem.quantity < 1) {
-          throw new BadRequestException(
-            `quantity must be at least 1 for card ${cardId}`,
+        if (!inventoryItem || inventoryItem.userId !== userId) {
+          throw new NotFoundException(
+            `Inventory item not found or you do not own it (ID: ${inventoryId})`,
           );
         }
         if (inventoryItem.quantity < quantity) {
           throw new ConflictException({
             statusCode: 409,
-            message: `Insufficient quantity for card ${cardId}`,
+            message: `Insufficient quantity for inventory item ${inventoryId}`,
             owned: inventoryItem.quantity,
             requested: quantity,
           });
         }
 
+        const cardId = inventoryItem.cardId;
         const coinEarned = inventoryItem.card.sellPrice * quantity;
         totalEarned += coinEarned;
+        totalSoldQuantity += quantity;
 
         const itemsToSell = await prisma.inventoryItems.findMany({
           where: {
@@ -326,32 +326,34 @@ export class InventoryService {
           },
         });
 
-        await prisma.inventory.update({
-          where: {
-            userId_cardId: { userId, cardId },
-          },
+        const updatedInventory = await prisma.inventory.update({
+          where: { id: inventoryId },
           data: {
             quantity: { decrement: quantity },
           },
         });
 
+        if (updatedInventory.quantity === 0) {
+          await prisma.inventory.delete({
+            where: { id: inventoryId },
+          });
+        }
+
         soldItems.push({
+          inventoryId,
           cardId,
           soldQuantity: quantity,
+          remainingQuantity: updatedInventory.quantity,
           earned: coinEarned,
         });
       }
-
-      await prisma.inventory.deleteMany({
-        where: { userId, quantity: 0 },
-      });
 
       const balanceBefore = await this.userService.getUserBalance(userId);
       const balanceAfter = balanceBefore + totalEarned;
 
       await prisma.user.update({
         where: { id: userId },
-        data: { balance: { increment: totalEarned } },
+        data: { balance: balanceAfter },
       });
 
       const createTransactionDto = {
@@ -360,10 +362,7 @@ export class InventoryService {
         amount: totalEarned,
         balanceBefore,
         balanceAfter,
-        description: `Sold ${soldItems.reduce(
-          (sum, i) => sum + i.soldQuantity,
-          0,
-        )} cards in bulk for ${totalEarned} coins`,
+        description: `Sold ${totalSoldQuantity} cards in bulk for ${totalEarned} coins`,
       };
 
       await this.transactionService.create(createTransactionDto, null, prisma);

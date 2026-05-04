@@ -1,8 +1,17 @@
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUrl, Max, MaxLength, Min } from "class-validator";
-import { Position, Rarity } from "../../../generated/prisma/enums.js";
+import {
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Max,
+  MaxLength,
+  Min,
+} from 'class-validator';
+import { Position, Rarity } from '../../../generated/prisma/enums.js';
 
 export class CreateCardDto {
-
   @IsNotEmpty({ message: 'sofifaId không được để trống' })
   @IsInt({ message: 'sofifaId phải là số nguyên' })
   sofifaId!: number;
@@ -31,7 +40,6 @@ export class CreateCardDto {
   @Min(1, { message: 'Giá bán tối thiểu phải là 1 coin' })
   sellPrice!: number;
 
-
   @IsOptional()
   @IsString()
   @MaxLength(100)
@@ -45,8 +53,6 @@ export class CreateCardDto {
   @IsOptional()
   @IsUrl({}, { message: 'imageUrl phải là một đường dẫn URL hợp lệ' })
   imageUrl?: string;
-
-
 
   @IsOptional()
   @IsInt()

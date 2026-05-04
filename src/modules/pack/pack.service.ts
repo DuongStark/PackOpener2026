@@ -35,11 +35,14 @@ export class PackService {
     page: number,
     limit: number,
   ): Promise<{ data: any[]; total: number }> {
-    const skip = (page - 1) * limit;
+    const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
+    const safeLimit =
+      Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 100;
+    const skip = (safePage - 1) * safeLimit;
     const [data, total] = await Promise.all([
       this.prisma.packDefinition.findMany({
         skip,
-        take: limit,
+        take: safeLimit,
         include: {
           packCardPools: {
             select: {
@@ -81,6 +84,8 @@ export class PackService {
         subtitle: pack.subtitle,
         oddsTeaser: pack.description ?? '',
         rarityFocus,
+        isFeatured: pack.isFeatured,
+        isLimited: pack.isLimited,
       };
     });
 
@@ -168,6 +173,8 @@ export class PackService {
         tierCode: data.tierCode ?? 'PK-00',
         subtitle: data.subtitle ?? 'Pack Series',
         isActive: data.isActive ?? false,
+        isFeatured: data.isFeatured ?? false,
+        isLimited: data.isLimited ?? false,
       },
     });
   }
@@ -214,6 +221,8 @@ export class PackService {
         tierCode: data.tierCode,
         subtitle: data.subtitle,
         isActive: data.isActive,
+        isFeatured: data.isFeatured,
+        isLimited: data.isLimited,
       },
     });
   }

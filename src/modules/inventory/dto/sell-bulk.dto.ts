@@ -1,10 +1,18 @@
 import { Type } from 'class-transformer';
-import { IsArray, ValidateNested } from 'class-validator';
-import { SellCardDto } from './sell-card.dto.js';
+import { IsArray, IsInt, IsUUID, Min, ValidateNested } from 'class-validator';
+
+export class SellBulkItemDto {
+  @IsUUID()
+  inventoryId!: string;
+
+  @IsInt()
+  @Min(1)
+  quantity!: number;
+}
 
 export class SellBulkDto {
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => SellCardDto)
-  items!: SellCardDto[];
+  @Type(() => SellBulkItemDto)
+  items!: SellBulkItemDto[];
 }

@@ -17,11 +17,11 @@ async function bootstrap() {
     }),
   );
   app.enableCors({
-  origin: ['http://localhost:5173', 'https://yourdomain.com'],
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true, 
-});
+    origin: ['http://localhost:5173', 'https://yourdomain.com'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  });
 
   const configService = app.get(ConfigService);
   const port = configService.getPort();

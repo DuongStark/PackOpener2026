@@ -16,6 +16,6 @@ export class CardResultDto {
 
 export class OpenPackResponseDto {
   userPackId!: string;
-  openedAt!: string; 
+  openedAt!: string;
   cards!: CardResultDto[];
 }

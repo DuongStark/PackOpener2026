@@ -45,4 +45,12 @@ export class UpdatePackDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  isFeatured?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  isLimited?: boolean;
 }

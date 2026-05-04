@@ -409,7 +409,12 @@ Authorization: Bearer <token>
   "name": "Premium Pack",
   "price": 500,
   "description": "Contains 5 cards",
-  "imageUrl": "https://..."
+  "imageUrl": "https://...",
+  "cardCount": 5,
+  "tierCode": "PG-08",
+  "subtitle": "Value Series",
+  "oddsTeaser": "More cards, rich Gold odds",
+  "isActive": true
 }
 ```
 
@@ -439,6 +444,7 @@ Authorization: Bearer <token>
   "data": [
     {
       "id": "uuid-inventory-item",
+      "userId": "uuid-user",
       "cardId": "uuid-card",
       "quantity": 1,
       "status": "IN_INVENTORY",
@@ -518,7 +524,7 @@ Authorization: Bearer <token>
 
 ---
 
-### POST /inventory/sell - Bán card
+### POST /inventory/sell - Bán card (Legacy)
 
 **Headers:** `Authorization: Bearer <token>`
 
@@ -540,10 +546,103 @@ Authorization: Bearer <token>
 
 ```json
 {
-  "success": true,
-  "soldQuantity": 1,
-  "totalEarned": 1000,
+  "cardId": "uuid-card",
+  "cardName": "Lionel Messi",
+  "quantitySold": 1,
+  "coinEarned": 1000,
   "newBalance": 10500
+}
+```
+
+---
+
+### POST /inventory/:id/sell - Bán card theo inventory ID
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Path Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| id | string | ID của inventory item |
+
+**Request Body:**
+
+```json
+{
+  "quantity": 1
+}
+```
+
+| Field    | Type   | Required | Description        |
+| -------- | ------ | -------- | ------------------ |
+| quantity | number | Yes      | Số lượng bán (>=1) |
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "inventoryId": "uuid-inventory-item",
+  "cardId": "uuid-card",
+  "soldQuantity": 1,
+  "remainingQuantity": 1,
+  "totalEarned": 2500,
+  "newBalance": 12500
+}
+```
+
+---
+
+### POST /inventory/sell-bulk - Bán nhiều inventory items cùng lúc
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+
+```json
+{
+  "items": [
+    {
+      "inventoryId": "uuid-inventory-item-1",
+      "quantity": 1
+    },
+    {
+      "inventoryId": "uuid-inventory-item-2",
+      "quantity": 2
+    }
+  ]
+}
+```
+
+| Field               | Type   | Required | Description                 |
+| ------------------- | ------ | -------- | --------------------------- |
+| items               | array  | Yes      | Danh sách các items cần bán |
+| items[].inventoryId | string | Yes      | ID của inventory item       |
+| items[].quantity    | number | Yes      | Số lượng bán (>=1)          |
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "soldItems": [
+    {
+      "inventoryId": "uuid-inventory-item-1",
+      "cardId": "uuid-card-1",
+      "soldQuantity": 1,
+      "remainingQuantity": 0,
+      "earned": 2500
+    },
+    {
+      "inventoryId": "uuid-inventory-item-2",
+      "cardId": "uuid-card-2",
+      "soldQuantity": 2,
+      "remainingQuantity": 3,
+      "earned": 4000
+    }
+  ],
+  "totalEarned": 6500,
+  "newBalance": 19000
 }
 ```
 
@@ -841,7 +940,12 @@ Tất cả API admin yêu cầu:
 {
   "name": "Premium Pack",
   "price": 500,
-  "description": "Contains 5 cards"
+  "cardCount": 5,
+  "description": "Contains 5 cards",
+  "imageUrl": "https://...",
+  "tierCode": "PG-08",
+  "subtitle": "Value Series",
+  "isActive": true
 }
 ```
 
@@ -852,7 +956,12 @@ Tất cả API admin yêu cầu:
   "id": "uuid",
   "name": "Premium Pack",
   "price": 500,
-  "description": "Contains 5 cards"
+  "cardCount": 5,
+  "description": "Contains 5 cards",
+  "imageUrl": "https://...",
+  "tierCode": "PG-08",
+  "subtitle": "Value Series",
+  "isActive": true
 }
 ```
 
@@ -913,7 +1022,9 @@ Tất cả API admin yêu cầu:
 ```json
 {
   "name": "New Pack Name",
-  "price": 600
+  "price": 600,
+  "tierCode": "PG-09",
+  "isActive": false
 }
 ```
 
@@ -923,7 +1034,9 @@ Tất cả API admin yêu cầu:
 {
   "id": "uuid",
   "name": "New Pack Name",
-  "price": 600
+  "price": 600,
+  "tierCode": "PG-09",
+  "isActive": false
 }
 ```
 

@@ -22,10 +22,14 @@ export class PackController {
   @Get()
   async findPack(
     @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
+    @Query('limit') limit: string = '100',
   ) {
-    const pageNumber = parseInt(page);
-    const limitNumber = parseInt(limit);
+    const parsedPage = Number.parseInt(page, 10);
+    const parsedLimit = Number.parseInt(limit, 10);
+    const pageNumber =
+      Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+    const limitNumber =
+      Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : 100;
     const result = await this.packService.findAll(pageNumber, limitNumber);
     return {
       ...result,

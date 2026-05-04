@@ -49,7 +49,10 @@ export class UserPackController {
 
   @Post('user-packs/:id/open')
   @UseGuards(JwtAuthGuard)
-  async openPack(@Param('id') id: string, @Req() req): Promise<OpenPackResponseDto> {
+  async openPack(
+    @Param('id') id: string,
+    @Req() req,
+  ): Promise<OpenPackResponseDto> {
     return this.userPackService.openPack(id, req.user.id);
   }
 }

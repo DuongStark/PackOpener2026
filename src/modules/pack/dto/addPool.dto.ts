@@ -13,4 +13,3 @@ export class addPoolDto {
 export interface addPoolResponseDto extends PackCardPool {
   probability: number;
 }
-
