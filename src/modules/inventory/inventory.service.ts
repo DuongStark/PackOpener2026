@@ -11,6 +11,7 @@ import { GetInventoryDto } from './dto/get-inventory.dto.js';
 import { PaginatedOutput } from '../../common/constants/global.dto.js';
 import { SellCardDto } from './dto/sell-card.dto.js';
 import { SellBulkDto } from './dto/sell-bulk.dto.js';
+import { SellInventoryIdDto } from './dto/sell-inventory-id.dto.js';
 import { Status, Type } from '../../generated/prisma/enums.js';
 import { TransactionService } from '../transaction/transaction.service.js';
 import { UserService } from '../user/user.service.js';
@@ -371,6 +372,106 @@ export class InventoryService {
         success: true,
         soldItems,
         totalEarned,
+        newBalance: balanceAfter,
+      };
+    });
+
+    return data;
+  }
+
+  async sellInventoryById(
+    inventoryId: string,
+    body: SellInventoryIdDto,
+    userId: string,
+  ) {
+    const data = await this.prisma.$transaction(async (prisma) => {
+      const { quantity } = body;
+      const inventoryItem = await prisma.inventory.findUnique({
+        where: { id: inventoryId },
+        include: { card: true },
+      });
+
+      if (!inventoryItem || inventoryItem.userId !== userId) {
+        throw new NotFoundException(
+          'Inventory item not found or you do not own it',
+        );
+      }
+
+      if (inventoryItem.quantity < quantity) {
+        throw new ConflictException({
+          statusCode: 409,
+          message: 'Insufficient quantity',
+        });
+      }
+
+      const cardId = inventoryItem.cardId;
+      const coinEarned = inventoryItem.card.sellPrice * quantity;
+
+      // Chọn các item cũ nhất
+      const itemsToSell = await prisma.inventoryItems.findMany({
+        where: {
+          userId,
+          cardId,
+          status: Status.IN_INVENTORY,
+        },
+        orderBy: {
+          acquiredAt: 'asc',
+        },
+        take: quantity,
+      });
+
+      await prisma.inventoryItems.updateMany({
+        where: {
+          id: { in: itemsToSell.map((i) => i.id) },
+        },
+        data: {
+          status: Status.SOLD,
+        },
+      });
+
+      const updatedInventory = await prisma.inventory.update({
+        where: { id: inventoryId },
+        data: {
+          quantity: { decrement: quantity },
+        },
+      });
+
+      if (updatedInventory.quantity === 0) {
+        await prisma.inventory.delete({
+          where: { id: inventoryId },
+        });
+      }
+
+      const balanceBefore = await this.userService.getUserBalance(userId);
+      const balanceAfter = balanceBefore + coinEarned;
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: { balance: balanceAfter },
+      });
+
+      const createTransactionDto = {
+        userId,
+        type: Type.SELL_CARD,
+        amount: coinEarned,
+        balanceBefore,
+        balanceAfter,
+        description: `Sold ${quantity}x ${inventoryItem.card.name} for ${coinEarned} coins`,
+      };
+
+      await this.transactionService.create(
+        createTransactionDto,
+        cardId,
+        prisma,
+      );
+
+      return {
+        success: true,
+        inventoryId,
+        cardId,
+        soldQuantity: quantity,
+        remainingQuantity: updatedInventory.quantity,
+        totalEarned: coinEarned,
         newBalance: balanceAfter,
       };
     });
