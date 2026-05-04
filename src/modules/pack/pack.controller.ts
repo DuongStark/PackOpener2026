@@ -22,7 +22,7 @@ export class PackController {
   @Get()
   async findPack(
     @Query('page') page: string = '1',
-    @Query('limit') limit: string = '100',
+    @Query('limit') limit: string = '10',
   ) {
     const parsedPage = Number.parseInt(page, 10);
     const parsedLimit = Number.parseInt(limit, 10);

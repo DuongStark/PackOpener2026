@@ -12,7 +12,7 @@ import { TransactionService } from '../transaction/transaction.service.js';
 import { PaginatedOutput } from '../../common/constants/global.dto.js';
 import { Pack } from '../pack/entities/pack.entity.js';
 import { getUserPacksDto } from './dto/get-userpack.dto.js';
-import { OpenPackResponseDto } from './dto/open-pack.dto.js';
+import { CardResultDto, OpenPackResponseDto } from './dto/open-pack.dto.js';
 import { RandomService } from '../../core/random/random.service.js';
 import { PurchaseMode } from './dto/buy-pack.dto.js';
 
@@ -23,7 +23,7 @@ interface buyPackResult {
   newBalance: number;
   status: string;
   openedAt?: string;
-  cards?: Array<Record<string, unknown>>;
+  cards?: CardResultDto[];
 }
 
 interface CardSnapshot {
